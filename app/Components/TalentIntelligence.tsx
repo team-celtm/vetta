@@ -8,6 +8,7 @@ interface Candidate {
   exp: string;
   score: number;
   avatarBg: string;
+  scoreBg: string;
   scoreColor: string;
 }
 
@@ -19,6 +20,7 @@ const candidates: Candidate[] = [
     exp: "7 yrs exp",
     score: 96,
     avatarBg: "bg-[#4F63FF]",
+    scoreBg: "bg-[#ECFDF5]",
     scoreColor: "text-[#10B981]",
   },
   {
@@ -28,6 +30,7 @@ const candidates: Candidate[] = [
     exp: "6 yrs",
     score: 91,
     avatarBg: "bg-[#F59E0B]",
+    scoreBg: "bg-[#ECFDF5]",
     scoreColor: "text-[#10B981]",
   },
   {
@@ -37,6 +40,7 @@ const candidates: Candidate[] = [
     exp: "9 yrs",
     score: 88,
     avatarBg: "bg-[#10B981]",
+    scoreBg: "bg-[#FFFBEB]",
     scoreColor: "text-[#F59E0B]",
   },
   {
@@ -46,6 +50,7 @@ const candidates: Candidate[] = [
     exp: "5 yrs",
     score: 82,
     avatarBg: "bg-[#8B5CF6]",
+    scoreBg: "bg-[#FFFBEB]",
     scoreColor: "text-[#F59E0B]",
   },
 ];
@@ -72,19 +77,19 @@ const TalentIntelligence: React.FC = () => {
       />
 
       {/* Main layout */}
-      <div className="relative z-10 max-w-[1100px] mx-auto px-6 sm:px-10 lg:px-12 py-16 lg:py-24 flex flex-col lg:flex-row items-center justify-center gap-10 lg:gap-20 min-h-[80vh]">
-        
+      <div className="relative z-10 max-w-5xl mx-auto px-6 py-16 flex flex-col lg:flex-row items-center justify-center gap-10">
+
         {/* ── LEFT COLUMN ── */}
-        <div className="flex-1 w-full max-w-[560px] lg:pt-6">
-          
+        <div className="flex-1 w-full pt-2">
+
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 bg-white border border-[#E2E2DC] rounded-full px-4 py-[6px] text-[11px] font-semibold tracking-widest text-[#1a1a1a] uppercase mb-8">
+          <div className="inline-flex items-center gap-2 bg-white border border-[#E2E2DC] rounded-full px-1.5 py-1.5 text-[11px] font-semibold tracking-widest text-[#1a1a1a] uppercase mb-8">
             <span className="w-[7px] h-[7px] rounded-full bg-[#4F63FF] inline-block" />
             AI-POWERED TALENT INTELLIGENCE
           </div>
 
           {/* Headline */}
-          <h1 className="text-[clamp(48px,6vw,80px)] font-extrabold leading-[1.0] tracking-[-2px] text-[#0f0f0f] mb-6">
+          <h1 className="text-[clamp(68px,8vw,80px)] font-extrabold leading-none tracking-[-2px] text-[#0f0f0f] mb-6">
             Hire the
             <br />
             Exact
@@ -101,7 +106,7 @@ const TalentIntelligence: React.FC = () => {
           </h1>
 
           {/* Subtext */}
-          <p className="text-[15px] text-[#555] leading-[1.65] max-w-[420px] mb-9">
+          <p className="text-[15px] text-[#555] leading-[1.65] max-w-[320px] mb-9">
             Vetta&apos;s real-time AI engine reads your JD, infers the skills
             and personality traits you need, then surfaces your perfect match
             from a curated pool of 1,200+ pre-vetted professionals.
@@ -143,18 +148,16 @@ const TalentIntelligence: React.FC = () => {
             </div>
             <span>
               Trusted by{" "}
-              <span className="font-bold text-[#111]">
-                240+ hiring teams
-              </span>{" "}
+              <span className="font-bold text-[#111]">240+ hiring teams</span>{" "}
               across India & APAC
             </span>
           </div>
         </div>
 
         {/* ── RIGHT COLUMN ── */}
-        <div className="relative flex-1 w-full max-w-[520px] flex justify-center">
-          
-          {/* Floating badge */}
+        <div className="relative flex-1 w-full flex justify-center">
+
+          {/* Floating badge — top-left of card */}
           <div className="absolute -top-4 -left-4 bg-white border-[1.5px] border-[#E2E2DC] rounded-xl px-4 py-[10px] shadow-[0_8px_24px_rgba(0,0,0,0.10)] z-10">
             <div className="text-[28px] font-extrabold text-[#2C4EFF] leading-none">
               96%
@@ -166,7 +169,7 @@ const TalentIntelligence: React.FC = () => {
 
           {/* Card */}
           <div className="bg-white rounded-[18px] shadow-[0_24px_64px_rgba(0,0,0,0.13)] overflow-hidden w-full transform lg:translate-y-4">
-            
+
             {/* Header */}
             <div className="bg-[#2C4EFF] px-5 py-[14px] flex items-center justify-between">
               <div>
@@ -194,7 +197,7 @@ const TalentIntelligence: React.FC = () => {
                   }`}
                 >
                   <span
-                    className={`inline-flex items-center justify-center w-[38px] h-[38px] rounded-full text-white text-[13px] font-bold ${c.avatarBg}`}
+                    className={`inline-flex items-center justify-center w-[38px] h-[38px] rounded-full text-white text-[13px] font-bold flex-shrink-0 ${c.avatarBg}`}
                   >
                     {c.initials}
                   </span>
@@ -208,21 +211,72 @@ const TalentIntelligence: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className={`text-[15px] font-bold ${c.scoreColor}`}>
+                  {/* Score badge with colored background */}
+                  <span
+                    className={`inline-flex items-center justify-center min-w-[52px] px-3 py-[5px] rounded-[8px] text-[14px] font-bold ${c.scoreBg} ${c.scoreColor}`}
+                  >
                     {c.score}%
-                  </div>
+                  </span>
                 </div>
               ))}
             </div>
 
-            {/* Footer */}
-            <div className="px-5 py-4 border-t border-[#F4F4F0] bg-[#FAFAF8] flex justify-end">
-              <div className="text-right">
-                <div className="text-[22px] font-extrabold text-[#10B981]">
-                  2.1S
+            {/* ── Slider + AI match time footer ── */}
+            <div className="px-5 py-4 border-t border-[#F4F4F0] bg-[#FAFAF8]">
+              <div className="flex items-center justify-between gap-4">
+
+                {/* Slider section */}
+                <div className="flex-1">
+                  <div className="text-[12px] font-semibold text-[#555] mb-2">
+                    Match Threshold
+                  </div>
+                  <div className="relative flex items-center">
+                    <input
+                      type="range"
+                      min={50}
+                      max={100}
+                      defaultValue={75}
+                      readOnly
+                      className="w-full h-[4px] rounded-full appearance-none pointer-events-none"
+                      style={{
+                        background: `linear-gradient(to right, #2C4EFF 0%, #2C4EFF 50%, #D1D5DB 50%, #D1D5DB 100%)`,
+                      }}
+                    />
+                    <style>{`
+                      input[type='range']::-webkit-slider-thumb {
+                        -webkit-appearance: none;
+                        width: 18px;
+                        height: 18px;
+                        border-radius: 50%;
+                        background: white;
+                        border: 2.5px solid #2C4EFF;
+                        box-shadow: 0 2px 6px rgba(44,78,255,0.25);
+                        cursor: default;
+                      }
+                      input[type='range']::-moz-range-thumb {
+                        width: 18px;
+                        height: 18px;
+                        border-radius: 50%;
+                        background: white;
+                        border: 2.5px solid #2C4EFF;
+                        box-shadow: 0 2px 6px rgba(44,78,255,0.25);
+                        cursor: default;
+                      }
+                    `}</style>
+                  </div>
                 </div>
-                <div className="text-[11px] text-[#888] mt-[1px]">
-                  AI match time
+
+                {/* Divider */}
+                <div className="w-px h-10 bg-[#E8E8E4] flex-shrink-0" />
+
+                {/* AI match time */}
+                <div className="text-right flex-shrink-0">
+                  <div className="text-[22px] font-extrabold text-[#10B981] leading-none">
+                    2.1S
+                  </div>
+                  <div className="text-[11px] text-[#888] mt-[3px]">
+                    AI match time
+                  </div>
                 </div>
               </div>
             </div>
