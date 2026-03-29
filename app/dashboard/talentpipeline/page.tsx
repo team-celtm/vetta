@@ -44,7 +44,7 @@ const IconFilter = () => (
 
 const IconPin = () => (
   <svg viewBox="0 0 24 24" fill="currentColor" className="w-3 h-3 text-red-400">
-    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
+    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" />
   </svg>
 );
 
@@ -65,11 +65,7 @@ const scoreClass = (c: Candidate["scoreColor"]) =>
     : "text-yellow-500";
 
 // ── Candidate Card ─────────────────────────────────────────────────────────
-type CandidateCardProps = {
-  candidate: Candidate;
-};
-
-const CandidateCard: React.FC<CandidateCardProps> = ({ candidate }) => {
+const CandidateCard: React.FC<{ candidate: Candidate }> = ({ candidate }) => {
   const {
     initials,
     avatarColor,
@@ -84,16 +80,14 @@ const CandidateCard: React.FC<CandidateCardProps> = ({ candidate }) => {
   } = candidate;
 
   return (
-    <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer">
-      
-      {/* Top */}
-      <div className="flex items-start justify-between gap-2">
-        <div className="flex items-center gap-2.5">
-          <div className={`w-9 h-9 rounded-xl ${avatarColor} flex items-center justify-center text-white text-xs font-bold`}>
+    <div className="bg-white rounded-xl p-3 sm:p-4 shadow-sm border border-gray-100 hover:shadow-md transition">
+      <div className="flex justify-between">
+        <div className="flex gap-2">
+          <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl ${avatarColor} flex items-center justify-center text-white text-xs font-bold`}>
             {initials}
           </div>
           <div>
-            <p className="text-sm font-semibold text-gray-900">{name}</p>
+            <p className="text-sm font-semibold">{name}</p>
             <p className="text-xs text-gray-400">{role}</p>
           </div>
         </div>
@@ -103,33 +97,21 @@ const CandidateCard: React.FC<CandidateCardProps> = ({ candidate }) => {
         </span>
       </div>
 
-      {/* Tags */}
       {tags.length > 0 && (
-        <div className="flex flex-wrap gap-1.5 mt-3">
+        <div className="flex flex-wrap gap-1 mt-2">
           {tags.map((t) => (
-            <span key={t} className="text-[11px] bg-gray-100 text-gray-500 rounded-md px-2 py-0.5 font-medium">
+            <span key={t} className="text-[10px] sm:text-[11px] bg-gray-100 px-2 py-0.5 rounded">
               {t}
             </span>
           ))}
         </div>
       )}
 
-      {/* Footer */}
-      <div className="flex items-center gap-1 mt-2.5 text-[11px] text-gray-400">
+      <div className="flex flex-wrap items-center gap-1 mt-2 text-[10px] sm:text-[11px] text-gray-400">
         <IconPin />
         <span>{location}</span>
-        {experience && (
-          <>
-            <span className="mx-1">·</span>
-            <span>{experience}</span>
-          </>
-        )}
-        {meta && (
-          <>
-            <span className="mx-1">·</span>
-            <span className="font-medium text-gray-500">{meta}</span>
-          </>
-        )}
+        {experience && <span>· {experience}</span>}
+        {meta && <span className="text-gray-500">· {meta}</span>}
       </div>
     </div>
   );
@@ -140,19 +122,17 @@ const PipelineCol: React.FC<{ col: PipelineColumn }> = ({ col }) => {
   const cards = candidates.filter((c) => c.stage === col.id);
 
   return (
-    <div className="flex flex-col min-w-[252px] w-[252px]">
-      {/* Header */}
+    <div className="snap-start w-[85%] sm:w-[260px] flex-shrink-0">
       <div className="mb-3">
         <div className="flex items-center gap-2">
-          <span className={`w-5 h-5 rounded-full text-[11px] font-bold flex items-center justify-center ${col.badgeColor}`}>
+          <span className={`w-5 h-5 text-[11px] flex items-center justify-center rounded-full ${col.badgeColor}`}>
             {col.count}
           </span>
-          <h3 className="text-base font-black text-gray-900">{col.label}</h3>
+          <h3 className="font-bold text-sm sm:text-base">{col.label}</h3>
         </div>
-        <p className="text-xs text-gray-400 ml-7">{col.subtitle}</p>
+        <p className="text-xs text-gray-400 ml-6">{col.subtitle}</p>
       </div>
 
-      {/* Cards */}
       <div className="flex flex-col gap-3">
         {cards.map((c) => (
           <CandidateCard key={c.id} candidate={c} />
@@ -165,49 +145,45 @@ const PipelineCol: React.FC<{ col: PipelineColumn }> = ({ col }) => {
 // ── Main Page ──────────────────────────────────────────────────────────────
 const TalentPipelinePage: React.FC = () => {
   return (
-    <div className="min-h-screen bg-[#F5F4F0] font-sans">
+    <div className="min-h-screen bg-[#F5F4F0]">
 
       {/* Header */}
-      <div className="flex items-center justify-between px-8 py-5 bg-white border-b border-gray-100">
-        <h1 className="text-xl font-black text-gray-900">Talent Pipeline</h1>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-4 sm:px-8 py-4 bg-white border-b">
+        <h1 className="text-lg sm:text-xl font-black">Talent Pipeline</h1>
 
-        <div className="flex items-center gap-3">
-          <button className="flex items-center gap-2 text-sm text-gray-600 border border-gray-200 rounded-lg px-4 py-2 bg-white hover:bg-gray-50">
+        <div className="flex gap-2">
+          <button className="flex items-center gap-1 text-xs sm:text-sm border px-3 py-2 rounded">
             <IconFilter /> Filters
           </button>
 
-          <button className="flex items-center gap-2 text-sm text-white bg-blue-600 hover:bg-blue-700 rounded-lg px-4 py-2 font-semibold">
-            + Add Candidate
+          <button className="text-xs sm:text-sm bg-blue-600 text-white px-3 py-2 rounded">
+            + Add
           </button>
         </div>
       </div>
 
       {/* Stats */}
-      <div className="flex items-center gap-6 px-8 py-4 bg-white border-b border-gray-100">
-        {pipelineStats.map((s, i) => {
+      <div className="flex flex-wrap gap-4 sm:gap-6 px-4 sm:px-8 py-4 bg-white border-b">
+        {pipelineStats.map((s) => {
           const Icon = statIconMap[s.icon];
 
           return (
-            <React.Fragment key={s.label}>
-              {i !== 0 && <div className="h-8 w-px bg-gray-100" />}
-              
-              <div className="flex items-center gap-2.5">
-                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${s.color}`}>
-                  <Icon />
-                </div>
-                <div>
-                  <p className="text-lg font-black text-gray-900">{s.value}</p>
-                  <p className="text-xs text-gray-400">{s.label}</p>
-                </div>
+            <div key={s.label} className="flex items-center gap-2">
+              <div className={`w-8 h-8 flex items-center justify-center rounded ${s.color}`}>
+                <Icon />
               </div>
-            </React.Fragment>
+              <div>
+                <p className="font-bold text-sm sm:text-lg">{s.value}</p>
+                <p className="text-[10px] sm:text-xs text-gray-400">{s.label}</p>
+              </div>
+            </div>
           );
         })}
       </div>
 
       {/* Board */}
-      <div className="px-8 py-6 overflow-x-auto">
-        <div className="flex gap-5 min-w-max">
+      <div className="px-4 sm:px-8 py-6">
+        <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-2">
           {columns.map((col) => (
             <PipelineCol key={col.id} col={col} />
           ))}
