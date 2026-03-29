@@ -52,7 +52,7 @@ const CustomerStories = () => {
         {/* Heading */}
         <h2
           className="text-[#0d1117] font-black text-5xl md:text-6xl leading-[1.05] mb-14"
-          style={{ fontFamily: "'Arial Black', 'Arial Bold', Arial, sans-serif" }}
+          
         >
           Hiring teams
           <br />

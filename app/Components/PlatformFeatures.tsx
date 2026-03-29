@@ -64,9 +64,7 @@ const PlatformFeatures = () => {
         {/* Heading */}
         <h2
           className="text-[#0d1117] font-black text-5xl md:text-6xl leading-[1.05] mb-5 max-w-lg"
-          style={{
-            fontFamily: "'Arial Black', 'Arial Bold', Arial, sans-serif",
-          }}
+         
         >
           Intelligence built for modern hiring teams
         </h2>

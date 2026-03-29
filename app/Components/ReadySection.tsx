@@ -12,7 +12,7 @@ const ReadySection: React.FC = () => {
 
         {/* Heading */}
         <h2
-          className="font-['Space_Grotesk'] text-white font-extrabold 
+          className=" text-white font-extrabold 
           text-4xl md:text-5xl lg:text-6xl 
           leading-tight tracking-tight mb-4"
         >

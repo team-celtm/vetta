@@ -1,12 +1,23 @@
 //app/dashboard/page.tsx
-
 "use client";
 import { useState, useRef } from "react";
-import { Box, Typography, Button, Chip, InputBase } from "@mui/material";
+import {
+  Box,
+  Typography,
+  Button,
+  Chip,
+  InputBase,
+  Drawer,
+  IconButton,
+  useMediaQuery,
+  useTheme,
+} from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import TuneIcon from "@mui/icons-material/TuneOutlined";
 import CloudUploadOutlinedIcon from "@mui/icons-material/CloudUploadOutlined";
 import SearchOffOutlinedIcon from "@mui/icons-material/SearchOffOutlined";
+import FilterListIcon from "@mui/icons-material/FilterList";
+import CloseIcon from "@mui/icons-material/Close";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -61,7 +72,9 @@ const MOCK_RESULTS: TalentCard[] = [
   },
 ];
 
-// ─── Components ───────────────────────────────────────────────────────────────
+const FILTER_OPTIONS = ["Available now", "Remote OK", "Top 10% match", "Verified only"];
+
+// ─── Upload Zone ──────────────────────────────────────────────────────────────
 
 function UploadZone({ onUpload }: { onUpload: (text: string) => void }) {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -76,10 +89,7 @@ function UploadZone({ onUpload }: { onUpload: (text: string) => void }) {
   return (
     <Box
       onClick={() => inputRef.current?.click()}
-      onDragOver={(e) => {
-        e.preventDefault();
-        setDragOver(true);
-      }}
+      onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
       onDragLeave={() => setDragOver(false)}
       onDrop={(e) => {
         e.preventDefault();
@@ -88,19 +98,19 @@ function UploadZone({ onUpload }: { onUpload: (text: string) => void }) {
         if (file) handleFile(file);
       }}
       sx={{
-        border: `1.5px dashed ${dragOver ? "#1A35E8" : "rgba(255,255,255,0.15)"}`,
+        border: `1.5px dashed ${dragOver ? "#1A35E8" : "rgba(0,0,0,0.15)"}`,
         borderRadius: "12px",
-        p: 3,
+        p: { xs: 2, sm: 3 },
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
         gap: 1,
         cursor: "pointer",
         transition: "all 0.2s",
-        bgcolor: dragOver ? "rgba(26,53,232,0.08)" : "rgba(255,255,255,0.04)",
+        bgcolor: dragOver ? "rgba(26,53,232,0.04)" : "rgba(0,0,0,0.02)",
         "&:hover": {
-          bgcolor: "rgba(255,255,255,0.06)",
-          borderColor: "rgba(255,255,255,0.3)",
+          bgcolor: "rgba(26,53,232,0.03)",
+          borderColor: "rgba(26,53,232,0.5)",
         },
       }}
     >
@@ -116,57 +126,34 @@ function UploadZone({ onUpload }: { onUpload: (text: string) => void }) {
       />
       <Box
         sx={{
-          border: "2px dashed #000000",
-          borderRadius: "12px",
-          p: 3,
+          width: 44,
+          height: 44,
+          borderRadius: "10px",
+          bgcolor: "rgba(26,53,232,0.1)",
           display: "flex",
-          flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          gap: 1.5,
-          cursor: "pointer",
-          transition: "all 0.2s ease",
-          "&:hover": {
-            borderColor: "#1A35E8",
-            bgcolor: "rgba(26,53,232,0.04)",
-          },
         }}
       >
-        {/* Icon box */}
-        <Box
-          sx={{
-            width: 44,
-            height: 44,
-            borderRadius: "10px",
-            bgcolor: "rgba(26,53,232,0.1)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <CloudUploadOutlinedIcon sx={{ color: "#1A35E8", fontSize: 22 }} />
-        </Box>
-
-        {/* Optional text */}
-        <Typography sx={{ fontSize: 13, color: "#374151", fontWeight: 500 }}>
-          Click or drag to upload
-        </Typography>
+        <CloudUploadOutlinedIcon sx={{ color: "#1A35E8", fontSize: 22 }} />
       </Box>
-      <Typography sx={{ color: "000000", fontWeight: 600, fontSize: 13.5 }}>
+      <Typography sx={{ fontSize: 13, color: "#374151", fontWeight: 600 }}>
         Upload Job Description
       </Typography>
-      <Typography sx={{ color: "000000", fontSize: 11.5 }}>
-        PDF, DOCX or paste text · click to upload
+      <Typography sx={{ color: "#9CA3AF", fontSize: 11.5 }}>
+        PDF, DOCX or TXT · click to upload
       </Typography>
     </Box>
   );
 }
 
+// ─── Talent Card ──────────────────────────────────────────────────────────────
+
 function TalentCardItem({ card }: { card: TalentCard }) {
   return (
     <Box
       sx={{
-        p: 2.5,
+        p: { xs: 2, sm: 2.5 },
         bgcolor: "#fff",
         borderRadius: "12px",
         border: "1px solid rgba(0,0,0,0.07)",
@@ -174,15 +161,8 @@ function TalentCardItem({ card }: { card: TalentCard }) {
         "&:hover": { boxShadow: "0 4px 20px rgba(0,0,0,0.08)" },
       }}
     >
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "flex-start",
-          mb: 1.5,
-        }}
-      >
-        <Box sx={{ display: "flex", gap: 1.5, alignItems: "center" }}>
+      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 1.5 }}>
+        <Box sx={{ display: "flex", gap: 1.5, alignItems: "center", minWidth: 0 }}>
           <Box
             sx={{
               width: 38,
@@ -195,25 +175,16 @@ function TalentCardItem({ card }: { card: TalentCard }) {
               color: "#fff",
               fontWeight: 700,
               fontSize: 13,
+              flexShrink: 0,
             }}
           >
-            {card.name
-              .split(" ")
-              .map((n) => n[0])
-              .join("")}
+            {card.name.split(" ").map((n) => n[0]).join("")}
           </Box>
-          <Box>
-            <Typography
-              sx={{
-                fontWeight: 700,
-                fontSize: 13.5,
-                color: "#0F1117",
-                lineHeight: 1.2,
-              }}
-            >
+          <Box sx={{ minWidth: 0 }}>
+            <Typography sx={{ fontWeight: 700, fontSize: 13.5, color: "#0F1117", lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               {card.name}
             </Typography>
-            <Typography sx={{ fontSize: 12, color: "#6B7280" }}>
+            <Typography sx={{ fontSize: 12, color: "#6B7280", whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               {card.role}
             </Typography>
           </Box>
@@ -223,10 +194,12 @@ function TalentCardItem({ card }: { card: TalentCard }) {
             bgcolor: card.match >= 90 ? "#ECFDF5" : "#F0F4FF",
             color: card.match >= 90 ? "#059669" : "#1A35E8",
             fontWeight: 700,
-            fontSize: 12,
+            fontSize: 11.5,
             px: 1.5,
             py: 0.5,
             borderRadius: "20px",
+            flexShrink: 0,
+            ml: 1,
           }}
         >
           {card.match}% match
@@ -251,32 +224,11 @@ function TalentCardItem({ card }: { card: TalentCard }) {
         ))}
       </Box>
 
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        <Typography sx={{ fontSize: 11.5, color: "#9CA3AF" }}>
-          📍 {card.location}
-        </Typography>
+      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <Typography sx={{ fontSize: 11.5, color: "#9CA3AF" }}>📍 {card.location}</Typography>
         <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-          <Box
-            sx={{
-              width: 6,
-              height: 6,
-              borderRadius: "50%",
-              bgcolor: card.available ? "#10B981" : "#F59E0B",
-            }}
-          />
-          <Typography
-            sx={{
-              fontSize: 11,
-              color: card.available ? "#10B981" : "#F59E0B",
-              fontWeight: 600,
-            }}
-          >
+          <Box sx={{ width: 6, height: 6, borderRadius: "50%", bgcolor: card.available ? "#10B981" : "#F59E0B" }} />
+          <Typography sx={{ fontSize: 11, color: card.available ? "#10B981" : "#F59E0B", fontWeight: 600 }}>
             {card.available ? "Available" : "Open to roles"}
           </Typography>
         </Box>
@@ -285,17 +237,109 @@ function TalentCardItem({ card }: { card: TalentCard }) {
   );
 }
 
+// ─── Left Panel Content ───────────────────────────────────────────────────────
+
+function LeftPanelContent({
+  hasSearched,
+  onUpload,
+  onClose,
+}: {
+  hasSearched: boolean;
+  onUpload: (text: string) => void;
+  onClose?: () => void;
+}) {
+  return (
+    <Box
+      sx={{
+        width: { xs: 300, sm: 380 },
+        height: "100%",
+        bgcolor: "#FFFFFF",
+        p: 2.5,
+        display: "flex",
+        flexDirection: "column",
+        gap: 2,
+        overflowY: "auto",
+      }}
+    >
+      {/* Header row with optional close */}
+      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+        <Box>
+          <Typography sx={{ color: "#111827", fontWeight: 700, fontSize: 14 }}>
+            Smart Match Engine
+          </Typography>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 0.75, mt: 0.5 }}>
+            <Box sx={{ width: 6, height: 6, borderRadius: "50%", bgcolor: "#10B981" }} />
+            <Typography sx={{ color: "#6B7280", fontSize: 11.5 }}>AI inference active</Typography>
+          </Box>
+        </Box>
+        {onClose && (
+          <IconButton onClick={onClose} size="small" sx={{ color: "#9CA3AF", mt: -0.5 }}>
+            <CloseIcon fontSize="small" />
+          </IconButton>
+        )}
+      </Box>
+
+      <UploadZone onUpload={onUpload} />
+
+      {!hasSearched && (
+        <Typography sx={{ color: "#9CA3AF", fontSize: 12, textAlign: "center", mt: 1 }}>
+          Upload a job description to activate AI inference and surface matched talent
+        </Typography>
+      )}
+
+      {hasSearched && (
+        <Box sx={{ mt: 1 }}>
+          <Typography
+            sx={{
+              color: "#6B7280",
+              fontSize: 11,
+              fontWeight: 600,
+              mb: 1,
+              textTransform: "uppercase",
+              letterSpacing: "0.05em",
+            }}
+          >
+            Filters
+          </Typography>
+          {FILTER_OPTIONS.map((f) => (
+            <Box
+              key={f}
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 1,
+                py: 0.75,
+                cursor: "pointer",
+                "&:hover": { "& .label": { color: "#111827" } },
+              }}
+            >
+              <Box sx={{ width: 14, height: 14, borderRadius: "4px", border: "1.5px solid #D1D5DB", flexShrink: 0 }} />
+              <Typography className="label" sx={{ color: "#6B7280", fontSize: 12, transition: "color 0.15s" }}>
+                {f}
+              </Typography>
+            </Box>
+          ))}
+        </Box>
+      )}
+    </Box>
+  );
+}
+
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function DashboardPage() {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+
   const [results, setResults] = useState<TalentCard[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [leftDrawerOpen, setLeftDrawerOpen] = useState(false);
 
   const handleUpload = (text: string) => {
-    console.log("JD content:", text.slice(0, 100));
     setResults(MOCK_RESULTS);
     setHasSearched(true);
+    setLeftDrawerOpen(false);
   };
 
   const handleSearch = () => {
@@ -306,135 +350,99 @@ export default function DashboardPage() {
   };
 
   return (
-    <Box sx={{ display: "flex", height: "100%" }}>
-      {/* Left Panel */}
-      <Box
-        sx={{
-          width: 380,
-          flexShrink: 0,
-          bgcolor: "#FFFFFF",
-          p: 2.5,
-          display: "flex",
-          flexDirection: "column",
-          gap: 2,
-          borderRight: "1px solid rgba(0,0,0,0.08)",
-        }}
-      >
-        {/* Header */}
-        <Box>
-          <Typography sx={{ color: "#111827", fontWeight: 700, fontSize: 14 }}>
-            Smart Match Engine
-          </Typography>
+    <Box sx={{ display: "flex", height: "100%", overflow: "hidden" }}>
 
-          <Box
-            sx={{ display: "flex", alignItems: "center", gap: 0.75, mt: 0.5 }}
-          >
-            <Box
-              sx={{
-                width: 6,
-                height: 6,
-                borderRadius: "50%",
-                bgcolor: "#10B981",
-              }}
-            />
-            <Typography sx={{ color: "#6B7280", fontSize: 11.5 }}>
-              AI inference active
-            </Typography>
-          </Box>
+      {/* ── Desktop left panel ── */}
+      {!isMobile && (
+        <Box
+          sx={{
+            width: 380,
+            flexShrink: 0,
+            bgcolor: "#FFFFFF",
+            borderRight: "1px solid rgba(0,0,0,0.08)",
+            display: "flex",
+            flexDirection: "column",
+            overflow: "hidden",
+          }}
+        >
+          <LeftPanelContent hasSearched={hasSearched} onUpload={handleUpload} />
         </Box>
+      )}
 
-        {/* Upload Zone */}
-        <UploadZone onUpload={handleUpload} />
+      {/* ── Mobile: left panel as bottom drawer ── */}
+      {isMobile && (
+        <Drawer
+          anchor="left"
+          open={leftDrawerOpen}
+          onClose={() => setLeftDrawerOpen(false)}
+          ModalProps={{ keepMounted: true }}
+          sx={{
+            '& .MuiDrawer-paper': {
+              width: 'min(300px, 85vw)',
+              border: 'none',
+              p: 0,
+            },
+          }}
+        >
+          <LeftPanelContent
+            hasSearched={hasSearched}
+            onUpload={handleUpload}
+            onClose={() => setLeftDrawerOpen(false)}
+          />
+        </Drawer>
+      )}
 
-        {!hasSearched && (
-          <Typography
-            sx={{
-              color: "#9CA3AF",
-              fontSize: 12,
-              textAlign: "center",
-              mt: 1,
-            }}
-          >
-            Upload a job description to activate AI inference and surface
-            matched talent
-          </Typography>
-        )}
+      {/* ── Right / Main panel ── */}
+      <Box sx={{ flexGrow: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
 
-        {hasSearched && (
-          <Box sx={{ mt: 1 }}>
-            <Typography
-              sx={{
-                color: "#6B7280",
-                fontSize: 11,
-                fontWeight: 600,
-                mb: 1,
-                textTransform: "uppercase",
-                letterSpacing: "0.05em",
-              }}
-            >
-              Filters
-            </Typography>
-
-            {[
-              "Available now",
-              "Remote OK",
-              "Top 10% match",
-              "Verified only",
-            ].map((f) => (
-              <Box
-                key={f}
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 1,
-                  py: 0.75,
-                  cursor: "pointer",
-                  "&:hover": { "& .label": { color: "#111827" } },
-                }}
-              >
-                <Box
-                  sx={{
-                    width: 14,
-                    height: 14,
-                    borderRadius: "4px",
-                    border: "1.5px solid #D1D5DB",
-                  }}
-                />
-
-                <Typography
-                  className="label"
-                  sx={{
-                    color: "#6B7280",
-                    fontSize: 12,
-                    transition: "color 0.15s",
-                  }}
-                >
-                  {f}
-                </Typography>
-              </Box>
-            ))}
-          </Box>
-        )}
-      </Box>
-
-      {/* Right Panel */}
-      <Box sx={{ flexGrow: 1, display: "flex", flexDirection: "column" }}>
         {/* Topbar */}
         <Box
           sx={{
-            px: 3,
+            px: { xs: 2, sm: 3 },
             py: 1.5,
             bgcolor: "#F5F2EC",
             borderBottom: "1px solid rgba(0,0,0,0.07)",
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
+            gap: 1.5,
+            flexWrap: { xs: "wrap", sm: "nowrap" },
           }}
         >
-          <Typography sx={{ fontWeight: 700, fontSize: 17, color: "#0F1117" }}>
-            Talent Match Results
-          </Typography>
-          <Box sx={{ display: "flex", gap: 1.5, alignItems: "center" }}>
+          {/* Title + mobile upload trigger */}
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, flexShrink: 0 }}>
+            {isMobile && (
+              <IconButton
+                onClick={() => setLeftDrawerOpen(true)}
+                size="small"
+                sx={{
+                  bgcolor: "#fff",
+                  border: "1px solid rgba(0,0,0,0.1)",
+                  borderRadius: "8px",
+                  width: 36,
+                  height: 36,
+                  color: "#374151",
+                  "&:hover": { borderColor: "#1A35E8", color: "#1A35E8" },
+                }}
+              >
+                <FilterListIcon sx={{ fontSize: 18 }} />
+              </IconButton>
+            )}
+            <Typography sx={{ fontWeight: 700, fontSize: { xs: 15, sm: 17 }, color: "#0F1117" }}>
+              Talent Match Results
+            </Typography>
+          </Box>
+
+          {/* Controls */}
+          <Box
+            sx={{
+              display: "flex",
+              gap: 1,
+              alignItems: "center",
+              flexWrap: "nowrap",
+              width: { xs: "100%", sm: "auto" },
+            }}
+          >
             {/* Search */}
             <Box
               sx={{
@@ -446,20 +454,21 @@ export default function DashboardPage() {
                 borderRadius: "8px",
                 px: 1.5,
                 height: 36,
-                width: 220,
+                flexGrow: { xs: 1, sm: 0 },
+                width: { sm: 200, md: 220 },
               }}
             >
-              <SearchIcon sx={{ color: "#9CA3AF", fontSize: 18 }} />
+              <SearchIcon sx={{ color: "#9CA3AF", fontSize: 18, flexShrink: 0 }} />
               <InputBase
-                placeholder="Search talent pool..."
+                placeholder="Search talent..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                sx={{ fontSize: 13, color: "#374151", flex: 1 }}
+                sx={{ fontSize: 13, color: "#374151", flex: 1, minWidth: 0 }}
               />
             </Box>
 
-            {/* Filters button */}
+            {/* Filters button — hidden on xs when drawer trigger replaces it */}
             <Button
               startIcon={<TuneIcon />}
               variant="outlined"
@@ -472,6 +481,8 @@ export default function DashboardPage() {
                 textTransform: "none",
                 height: 36,
                 borderRadius: "8px",
+                whiteSpace: "nowrap",
+                display: { xs: "none", sm: "flex" },
                 "&:hover": { borderColor: "#1A35E8", color: "#1A35E8" },
               }}
             >
@@ -489,19 +500,11 @@ export default function DashboardPage() {
                 borderRadius: "8px",
                 px: 1.5,
                 height: 36,
+                flexShrink: 0,
               }}
             >
-              <Box
-                sx={{
-                  width: 7,
-                  height: 7,
-                  borderRadius: "50%",
-                  bgcolor: "#10B981",
-                }}
-              />
-              <Typography
-                sx={{ fontSize: 12, fontWeight: 600, color: "#374151" }}
-              >
+              <Box sx={{ width: 7, height: 7, borderRadius: "50%", bgcolor: "#10B981" }} />
+              <Typography sx={{ fontSize: 12, fontWeight: 600, color: "#374151", whiteSpace: "nowrap" }}>
                 1,240 vetted
               </Typography>
             </Box>
@@ -509,7 +512,7 @@ export default function DashboardPage() {
         </Box>
 
         {/* Content */}
-        <Box sx={{ flexGrow: 1, overflow: "auto", p: 3, bgcolor: "#F5F2EC" }}>
+        <Box sx={{ flexGrow: 1, overflow: "auto", p: { xs: 2, sm: 3 }, bgcolor: "#F5F2EC" }}>
           {!hasSearched ? (
             <Box
               sx={{
@@ -519,47 +522,53 @@ export default function DashboardPage() {
                 alignItems: "center",
                 justifyContent: "center",
                 gap: 1.5,
+                px: 2,
               }}
             >
               <Box sx={{ opacity: 0.35 }}>
-                <SearchOffOutlinedIcon
-                  sx={{ fontSize: 52, color: "#9CA3AF" }}
-                />
+                <SearchOffOutlinedIcon sx={{ fontSize: 52, color: "#9CA3AF" }} />
               </Box>
-              <Typography
-                sx={{ fontWeight: 700, fontSize: 17, color: "#374151" }}
-              >
+              <Typography sx={{ fontWeight: 700, fontSize: { xs: 15, sm: 17 }, color: "#374151" }}>
                 No active search
               </Typography>
-              <Typography
-                sx={{
-                  fontSize: 13,
-                  color: "#9CA3AF",
-                  textAlign: "center",
-                  maxWidth: 260,
-                }}
-              >
-                Upload a job description to surface matched talent from the
-                Vetta pool
+              <Typography sx={{ fontSize: 13, color: "#9CA3AF", textAlign: "center", maxWidth: 280 }}>
+                {isMobile
+                  ? "Tap the filter icon to upload a job description"
+                  : "Upload a job description to surface matched talent from the Vetta pool"}
               </Typography>
+              {isMobile && (
+                <Button
+                  variant="contained"
+                  size="small"
+                  onClick={() => setLeftDrawerOpen(true)}
+                  sx={{
+                    mt: 1,
+                    bgcolor: "#1A35E8",
+                    borderRadius: "8px",
+                    textTransform: "none",
+                    fontWeight: 600,
+                    fontSize: 13,
+                    "&:hover": { bgcolor: "#1430c4" },
+                  }}
+                >
+                  Upload Job Description
+                </Button>
+              )}
             </Box>
           ) : (
             <Box>
-              <Typography
-                sx={{
-                  fontSize: 12.5,
-                  color: "#6B7280",
-                  mb: 2,
-                  fontWeight: 500,
-                }}
-              >
+              <Typography sx={{ fontSize: 12.5, color: "#6B7280", mb: 2, fontWeight: 500 }}>
                 {results.length} candidates matched · sorted by relevance
               </Typography>
               <Box
                 sx={{
                   display: "grid",
-                  gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-                  gap: 2,
+                  gridTemplateColumns: {
+                    xs: "1fr",
+                    sm: "repeat(auto-fill, minmax(260px, 1fr))",
+                    lg: "repeat(auto-fill, minmax(280px, 1fr))",
+                  },
+                  gap: { xs: 1.5, sm: 2 },
                 }}
               >
                 {results.map((card) => (

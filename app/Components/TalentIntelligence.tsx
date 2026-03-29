@@ -65,7 +65,7 @@ const avatarLetters: string[] = ["R", "S", "M", "P"];
 
 const TalentIntelligence: React.FC = () => {
   return (
-    <div className="relative min-h-[80vh] bg-[#F0F0EC] overflow-hidden font-sans">
+    <div className="relative min-h-screen bg-[#F0F0EC] overflow-hidden font-sans">
       {/* Grid background */}
       <div
         className="absolute inset-0 pointer-events-none z-0"
@@ -76,20 +76,20 @@ const TalentIntelligence: React.FC = () => {
         }}
       />
 
-      {/* Main layout */}
-      <div className="relative z-10 max-w-5xl mx-auto px-6 py-16 flex flex-col lg:flex-row items-center justify-center gap-10">
+      {/* Main layout — full-width with padding, flex col on mobile, row on desktop */}
+      <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 py-10 sm:py-14 lg:py-16 flex flex-col lg:flex-row items-start justify-between gap-8 lg:gap-10">
 
-        {/* ── LEFT COLUMN ── */}
-        <div className="flex-1 w-full pt-2">
+        {/* ── LEFT COLUMN — wider, no max-w cap ── */}
+        <div className="w-full lg:flex-[1.1] lg:max-w-none pt-2">
 
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 bg-white border border-[#E2E2DC] rounded-full px-1.5 py-1.5 text-[11px] font-semibold tracking-widest text-[#1a1a1a] uppercase mb-8">
-            <span className="w-[7px] h-[7px] rounded-full bg-[#4F63FF] inline-block" />
+          <div className="inline-flex items-center gap-2 bg-white border border-[#E2E2DC] rounded-full px-3 py-1.5 text-[11px] font-semibold tracking-widest text-[#1a1a1a] uppercase mb-7">
+            <span className="w-[7px] h-[7px] rounded-full bg-[#4F63FF] inline-block flex-shrink-0" />
             AI-POWERED TALENT INTELLIGENCE
           </div>
 
-          {/* Headline */}
-          <h1 className="text-[clamp(68px,8vw,80px)] font-extrabold leading-none tracking-[-2px] text-[#0f0f0f] mb-6">
+          {/* Headline — scales down gracefully on small screens */}
+          <h1 className="font-extrabold leading-none tracking-[-2px] text-[#0f0f0f] mb-6 text-[clamp(48px,7vw,80px)]">
             Hire the
             <br />
             Exact
@@ -105,8 +105,8 @@ const TalentIntelligence: React.FC = () => {
             Time.
           </h1>
 
-          {/* Subtext */}
-          <p className="text-[15px] text-[#555] leading-[1.65] max-w-[320px] mb-9">
+          {/* Subtext — no max-w cap so it stretches with the column */}
+          <p className="text-[15px] text-[#555] leading-[1.65] mb-9 max-w-sm lg:max-w-none">
             Vetta&apos;s real-time AI engine reads your JD, infers the skills
             and personality traits you need, then surfaces your perfect match
             from a curated pool of 1,200+ pre-vetted professionals.
@@ -134,7 +134,7 @@ const TalentIntelligence: React.FC = () => {
 
           {/* Trust row */}
           <div className="flex items-center gap-3 text-[13.5px] text-[#444]">
-            <div className="flex">
+            <div className="flex flex-shrink-0">
               {avatarLetters.map((letter, i) => (
                 <span
                   key={i}
@@ -154,11 +154,11 @@ const TalentIntelligence: React.FC = () => {
           </div>
         </div>
 
-        {/* ── RIGHT COLUMN ── */}
-        <div className="relative flex-1 w-full flex justify-center">
+        {/* ── RIGHT COLUMN — wider card ── */}
+        <div className="relative w-full lg:flex-[1.2] flex justify-center lg:justify-end">
 
-          {/* Floating badge — top-left of card */}
-          <div className="absolute -top-4 -left-4 bg-white border-[1.5px] border-[#E2E2DC] rounded-xl px-4 py-[10px] shadow-[0_8px_24px_rgba(0,0,0,0.10)] z-10">
+          {/* Floating badge — repositioned for mobile */}
+          <div className="absolute -top-3 left-2 sm:-top-4 sm:-left-4 bg-white border-[1.5px] border-[#E2E2DC] rounded-xl px-4 py-[10px] shadow-[0_8px_24px_rgba(0,0,0,0.10)] z-10">
             <div className="text-[28px] font-extrabold text-[#2C4EFF] leading-none">
               96%
             </div>
@@ -167,20 +167,20 @@ const TalentIntelligence: React.FC = () => {
             </div>
           </div>
 
-          {/* Card */}
-          <div className="bg-white rounded-[18px] shadow-[0_24px_64px_rgba(0,0,0,0.13)] overflow-hidden w-full transform lg:translate-y-4">
+          {/* Card — full width on mobile, wider on desktop */}
+          <div className="bg-white rounded-[18px] shadow-[0_24px_64px_rgba(0,0,0,0.13)] overflow-hidden w-full mt-8 sm:mt-4 lg:mt-4 lg:translate-y-4">
 
             {/* Header */}
-            <div className="bg-[#2C4EFF] px-5 py-[14px] flex items-center justify-between">
-              <div>
-                <div className="text-[15px] font-bold text-white">
+            <div className="bg-[#2C4EFF] px-5 py-[14px] flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <div className="text-[15px] font-bold text-white truncate">
                   SM — Fintech · Match Results
                 </div>
                 <div className="text-[11.5px] text-white/70 mt-[1px]">
                   Analysis complete · 8 skills detected
                 </div>
               </div>
-              <div className="bg-white/15 text-white text-[11px] font-bold px-[10px] py-1 rounded-[6px] tracking-[0.04em]">
+              <div className="bg-white/15 text-white text-[11px] font-bold px-[10px] py-1 rounded-[6px] tracking-[0.04em] flex-shrink-0">
                 75% threshold
               </div>
             </div>
@@ -202,18 +202,17 @@ const TalentIntelligence: React.FC = () => {
                     {c.initials}
                   </span>
 
-                  <div className="flex-1">
-                    <div className="text-[14px] font-semibold text-[#111]">
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[14px] font-semibold text-[#111] truncate">
                       {c.name}
                     </div>
-                    <div className="text-[12px] text-[#888] mt-[1px]">
+                    <div className="text-[12px] text-[#888] mt-[1px] truncate">
                       {c.role} · {c.exp}
                     </div>
                   </div>
 
-                  {/* Score badge with colored background */}
                   <span
-                    className={`inline-flex items-center justify-center min-w-[52px] px-3 py-[5px] rounded-[8px] text-[14px] font-bold ${c.scoreBg} ${c.scoreColor}`}
+                    className={`inline-flex items-center justify-center min-w-[52px] px-3 py-[5px] rounded-[8px] text-[14px] font-bold flex-shrink-0 ${c.scoreBg} ${c.scoreColor}`}
                   >
                     {c.score}%
                   </span>
@@ -221,12 +220,12 @@ const TalentIntelligence: React.FC = () => {
               ))}
             </div>
 
-            {/* ── Slider + AI match time footer ── */}
+            {/* Slider + AI match time footer */}
             <div className="px-5 py-4 border-t border-[#F4F4F0] bg-[#FAFAF8]">
               <div className="flex items-center justify-between gap-4">
 
                 {/* Slider section */}
-                <div className="flex-1">
+                <div className="flex-1 min-w-0">
                   <div className="text-[12px] font-semibold text-[#555] mb-2">
                     Match Threshold
                   </div>
