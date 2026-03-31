@@ -1,4 +1,4 @@
-"use client";
+
 "use client";
 
 import { availabilityStyle, poolStats, TalentCandidate, talentPool } from "@/app/api/talentpool/talentPoolData";
