@@ -198,7 +198,7 @@ function LeftPanelContent({
       {jd && (
         <div className="mx-4 mb-3">
           <div className="flex items-center gap-3 p-3 rounded-xl border-2 border-emerald-400 bg-emerald-50">
-            <div className="w-9 h-9 rounded-lg bg-emerald-100 flex items-center justify-center flex-shrink-0">
+            <div className="w-9 h-9 rounded-lg bg-emerald-100 flex items-center justify-center shrink-0">
               <svg
                 className="w-4 h-4 text-emerald-600"
                 fill="none"
@@ -226,7 +226,7 @@ function LeftPanelContent({
             <button
               onClick={onReplaceJD}
               title="Upload a different job description"
-              className="flex-shrink-0 flex items-center gap-1 text-[11px] font-semibold text-emerald-700 hover:text-red-500 transition-colors px-2 py-1 rounded-lg hover:bg-red-50"
+              className="shrink-0 flex items-center gap-1 text-[11px] font-semibold text-emerald-700 hover:text-red-500 transition-colors px-2 py-1 rounded-lg hover:bg-red-50"
             >
               <svg
                 className="w-3.5 h-3.5"
