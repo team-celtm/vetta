@@ -19,6 +19,7 @@ export interface TalentCard {
   email?: string;
   phone?: string;
   linkedin?: string;
+  availability?:string;
 
 }
 

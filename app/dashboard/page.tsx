@@ -129,7 +129,6 @@ function LeftPanelContent({
   const isActive = jd?.status === "active";
   const isInferring = jd?.status === "inferring";
 
-
   const mockSkills = [
     "Product Strategy",
     "Roadmapping",
@@ -637,6 +636,24 @@ export default function DashboardPage() {
 
   const [appliedLocations, setAppliedLocations] = useState<string[]>([]);
   const [appliedExperience, setAppliedExperience] = useState<string[]>([]);
+  // Availability state
+const [draftAvailability, setDraftAvailability] = useState<string[]>([]);
+const [appliedAvailability, setAppliedAvailability] = useState<string[]>([]);
+
+  const AVAILABILITY_OPTIONS = [
+    { value: "available-now", label: "Available Now", color: "#22C55E" },
+    { value: "open-to-offers", label: "Open to Offers", color: "#3B82F6" },
+    {
+      value: "available-2weeks",
+      label: "Available in 2 weeks",
+      color: "#EAB308",
+    },
+    {
+      value: "available-1month",
+      label: "Available in 1 month+",
+      color: "#EF4444",
+    },
+  ];
   const EXPERIENCE_BUCKETS = [
     { label: "0-2 yrs", min: 0, max: 2 },
     { label: "3-5 yrs", min: 3, max: 5 },
@@ -654,7 +671,7 @@ export default function DashboardPage() {
     }
   }, [filtersOpen, appliedLocations, appliedExperience]);
 
-  const visibleResults = allResults.filter((r) => {
+const visibleResults = allResults.filter((r) => {
     const matchesSearch =
       r.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       r.role.toLowerCase().includes(searchQuery.toLowerCase());
@@ -672,7 +689,11 @@ export default function DashboardPage() {
         return years >= bucket.min && years <= bucket.max;
       });
 
-    return matchesSearch && matchesLocation && matchesExperience;
+  const matchesAvailability =
+  appliedAvailability.length === 0 ||
+  appliedAvailability.includes(r.availability ?? "");
+
+    return matchesSearch && matchesLocation && matchesExperience && matchesAvailability;
   });
 
   const loadMatches = useCallback(async (jdId: string) => {
@@ -939,7 +960,7 @@ export default function DashboardPage() {
             {/* Filters */}
             <button
               onClick={() => setFiltersOpen(true)}
-              className="hidden sm:flex items-center gap-1.5 h-9 px-3.5 border border-gray-200 rounded-lg text-[12px] font-semibold text-gray-600 hover:border-blue-500 hover:text-blue-600 transition-colors"
+              className=" cursor-pointer hidden sm:flex items-center gap-1.5 h-9 px-3.5 border border-gray-200 rounded-lg text-[12px] font-semibold text-gray-600 hover:border-blue-500 hover:text-blue-600 transition-colors"
             >
               Filters
             </button>
@@ -1039,104 +1060,287 @@ export default function DashboardPage() {
                 anchor="right"
                 open={filtersOpen}
                 onClose={() => setFiltersOpen(false)}
-                sx={{ "& .MuiDrawer-paper": { width: 320, p: 2 } }}
+                sx={{
+                  "& .MuiDrawer-paper": {
+                    width: 380,
+                    p: 0,
+                    borderRadius: "16px 0 0 16px",
+                  },
+                }}
               >
-                <div className="flex flex-col h-full">
+                <div className="flex flex-col h-full bg-white">
                   {/* Header */}
-                  <div className="flex items-center justify-between mb-4">
-                    <h2 className="font-bold text-gray-900">Filters</h2>
-                    <button onClick={() => setFiltersOpen(false)}>✕</button>
+                  <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-7 h-7 bg-[#1a1a2e] rounded-md flex items-center justify-center">
+                        <svg
+                          width="14"
+                          height="14"
+                          viewBox="0 0 16 16"
+                          fill="none"
+                        >
+                          <rect
+                            x="2"
+                            y="2"
+                            width="5"
+                            height="5"
+                            rx="1"
+                            fill="white"
+                          />
+                          <rect
+                            x="9"
+                            y="2"
+                            width="5"
+                            height="5"
+                            rx="1"
+                            fill="white"
+                          />
+                          <rect
+                            x="2"
+                            y="9"
+                            width="5"
+                            height="5"
+                            rx="1"
+                            fill="white"
+                          />
+                          <rect
+                            x="9"
+                            y="9"
+                            width="5"
+                            height="5"
+                            rx="1"
+                            fill="white"
+                          />
+                        </svg>
+                      </div>
+                      <h2 className="text-[17px] font-semibold text-gray-900 tracking-tight">
+                        Filter Candidates
+                      </h2>
+                    </div>
+                    <button
+                      onClick={() => setFiltersOpen(false)}
+                      className="w-8 h-8 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-500 text-sm hover:bg-gray-200 transition"
+                    >
+                      ✕
+                    </button>
                   </div>
 
-                  <div>
-                    <p className="text-[12px] font-semibold text-gray-500 mb-2">
-                      Location
-                    </p>
+                  {/* Scrollable body */}
+                  <div className="flex-1 overflow-y-auto px-5 py-5 space-y-6">
+                    {/* LOCATION */}
+                    <div>
+                      <p className="flex items-center gap-1.5 text-[11px] font-bold tracking-widest uppercase text-gray-400 mb-3">
+                        <span>📍</span> Location
+                      </p>
+                      <div className="flex flex-col gap-1.5">
+                        {Object.entries(locationCounts).map(([loc, count]) => {
+                          const active = draftLocations.includes(loc);
+                          return (
+                            <button
+                              key={loc}
+                              onClick={() =>
+                                setDraftLocations((prev) =>
+                                  prev.includes(loc)
+                                    ? prev.filter((l) => l !== loc)
+                                    : [...prev, loc],
+                                )
+                              }
+                              className={`flex items-center gap-2.5 px-3 py-2.5 rounded-[10px] border text-sm transition-all ${
+                                active
+                                  ? "bg-blue-50 border-blue-500"
+                                  : "bg-white border-gray-200 hover:border-gray-300"
+                              }`}
+                            >
+                              {/* Checkbox */}
+                              <div
+                                className={`w-[18px] h-[18px] rounded-[5px] border-[1.5px] flex items-center justify-center shrink-0 transition-all ${
+                                  active
+                                    ? "bg-blue-600 border-blue-600"
+                                    : "border-slate-300 bg-white"
+                                }`}
+                              >
+                                {active && (
+                                  <svg
+                                    width="10"
+                                    height="8"
+                                    viewBox="0 0 10 8"
+                                    fill="none"
+                                  >
+                                    <path
+                                      d="M1 4L3.5 6.5L9 1"
+                                      stroke="white"
+                                      strokeWidth="1.8"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                    />
+                                  </svg>
+                                )}
+                              </div>
+                              <span
+                                className={`flex-1 text-left ${active ? "text-blue-700" : "text-gray-700"}`}
+                              >
+                                {loc}
+                              </span>
+                              <span
+                                className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
+                                  active
+                                    ? "bg-blue-100 text-blue-600"
+                                    : "bg-slate-100 text-slate-400"
+                                }`}
+                              >
+                                {count}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
 
-                    <div className="flex flex-col gap-2">
-                      {Object.entries(locationCounts).map(([loc, count]) => {
-                        const active = draftLocations.includes(loc);
+                    {/* YEARS OF EXPERIENCE */}
+                    <div>
+                      <p className="flex items-center gap-1.5 text-[11px] font-bold tracking-widest uppercase text-gray-400 mb-3">
+                        <span>💼</span> Years of Experience
+                      </p>
+                      <div className="grid grid-cols-2 gap-2.5">
+                        <input
+                          type="number"
+                          placeholder="Min years"
+                          className="px-3 py-2.5 rounded-[10px] border border-gray-200 text-sm text-gray-700 placeholder-slate-400 focus:outline-none focus:border-blue-500 transition"
+                        />
+                        <input
+                          type="number"
+                          placeholder="Max years"
+                          className="px-3 py-2.5 rounded-[10px] border border-gray-200 text-sm text-gray-700 placeholder-slate-400 focus:outline-none focus:border-blue-500 transition"
+                        />
+                      </div>
+                    </div>
 
-                        return (
-                          <button
-                            key={loc}
-                            onClick={() => {
-                              setDraftLocations((prev) =>
-                                prev.includes(loc)
-                                  ? prev.filter((l) => l !== loc)
-                                  : [...prev, loc],
-                              );
-                            }}
-                            className={`flex items-center justify-between px-3 py-2 rounded-lg border text-sm ${
-                              active
-                                ? "bg-blue-50 border-blue-500 text-blue-700"
-                                : "border-gray-200 text-gray-600"
-                            }`}
+                    {/* AVAILABILITY */}
+                    <div>
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="w-4 h-4 rounded bg-green-500 flex items-center justify-center flex-shrink-0">
+                          <svg
+                            width="9"
+                            height="7"
+                            viewBox="0 0 10 8"
+                            fill="none"
                           >
-                            <span>{loc}</span>
-                            <span className="text-xs font-semibold">
-                              {count}
-                            </span>
-                          </button>
-                        );
-                      })}
+                            <path
+                              d="M1 4L3.5 6.5L9 1"
+                              stroke="white"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </svg>
+                        </div>
+                        <p className="text-[11px] font-bold tracking-widest uppercase text-gray-400">
+                          Availability
+                        </p>
+                      </div>
+
+                      <div className="flex flex-col gap-1.5">
+                        {AVAILABILITY_OPTIONS.map(({ value, label, color }) => {
+                          const active = draftAvailability.includes(value);
+                          return (
+                            <div
+                              key={value}
+                              className="flex items-center gap-2.5 px-3 py-2.5 rounded-[10px] border border-gray-200 bg-white"
+                            >
+                              <div
+                                className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                                style={{ background: color }}
+                              />
+                              <span className="flex-1 text-sm text-gray-700">
+                                {label}
+                              </span>
+
+                              {/* Toggle switch */}
+                              <button
+                                role="switch"
+                                aria-checked={active}
+                                onClick={() =>
+                                  setDraftAvailability((prev) =>
+                                    prev.includes(value)
+                                      ? prev.filter((v) => v !== value)
+                                      : [...prev, value],
+                                  )
+                                }
+                                className={`relative w-[38px] h-[22px] rounded-full transition-colors duration-200 flex-shrink-0 ${
+                                  active ? "bg-blue-600" : "bg-gray-200"
+                                }`}
+                              >
+                                <span
+                                  className={`absolute top-[3px] w-4 h-4 bg-white rounded-full shadow transition-transform duration-200 ${
+                                    active
+                                      ? "translate-x-[19px]"
+                                      : "translate-x-[3px]"
+                                  }`}
+                                />
+                              </button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* PERSONALITY PROPERTIES */}
+                    <div>
+                      <p className="flex items-center gap-1.5 text-[11px] font-bold tracking-widest uppercase text-gray-400 mb-2">
+                        <span>🧠</span> Personality Properties
+                      </p>
+                      <div className="divide-y divide-gray-100">
+                        {[
+                          { icon: "👑", label: "Leadership" },
+                          { icon: "🤝", label: "Team Player" },
+                          { icon: "💡", label: "Creativity" },
+                          { icon: "⚡", label: "Drive" },
+                        ].map(({ icon, label }) => (
+                          <div key={label} className="py-3">
+                            <div className="flex items-center justify-between mb-2">
+                              <div className="flex items-center gap-2 text-sm text-gray-800">
+                                <span>{icon}</span> {label}
+                              </div>
+                              <span className="text-sm font-semibold text-blue-600">
+                                Any
+                              </span>
+                            </div>
+                            <input
+                              type="range"
+                              min={0}
+                              max={10}
+                              defaultValue={0}
+                              className="w-full accent-blue-600 h-1 rounded-full cursor-pointer"
+                            />
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
 
-                  {/* EXPERIENCE FILTER */}
-                  <div className="mt-6">
-                    <p className="text-[12px] font-semibold text-gray-500 mb-2">
-                      Experience
-                    </p>
-
-                    <div className="flex flex-col gap-2">
-                      {EXPERIENCE_BUCKETS.map((bucket) => {
-                        const active = draftExperience.includes(bucket.label);
-
-                        return (
-                          <button
-                            key={bucket.label}
-                            onClick={() => {
-                              setDraftExperience((prev) =>
-                                prev.includes(bucket.label)
-                                  ? prev.filter((l) => l !== bucket.label)
-                                  : [...prev, bucket.label],
-                              );
-                            }}
-                            className={`flex items-center justify-between px-3 py-2 rounded-lg border text-sm ${
-                              active
-                                ? "bg-blue-50 border-blue-500 text-blue-700"
-                                : "border-gray-200 text-gray-600"
-                            }`}
-                          >
-                            {bucket.label}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  <div className="mt-auto pt-4 border-t flex gap-2">
+                  {/* Footer */}
+                  <div className="px-5 py-4 border-t border-gray-100 flex gap-2.5">
                     <button
                       onClick={() => {
                         setDraftLocations([]);
                         setDraftExperience([]);
+                        setDraftAvailability([]);
                       }}
-                      className="flex-1 border border-gray-200 rounded-lg py-2 text-sm"
+                      className="flex-1 py-3 rounded-[10px] border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 transition cursor-pointer"
                     >
-                      Clear
+                      Reset All
                     </button>
-
-                    {/* Apply */}
                     <button
                       onClick={() => {
                         setAppliedLocations(draftLocations);
                         setAppliedExperience(draftExperience);
+                        setAppliedAvailability(draftAvailability);
+
                         setFiltersOpen(false);
                       }}
-                      className="flex-1 bg-blue-600 text-white rounded-lg py-2 text-sm"
+                      className="cursor-pointer flex-[1.6] py-3 rounded-[10px] bg-[#1E3A8A] text-white text-sm font-semibold hover:bg-blue-900 transition"
                     >
-                      Apply
+                      Apply Filters
                     </button>
                   </div>
                 </div>

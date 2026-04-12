@@ -63,27 +63,24 @@ export async function GET(
     );
 
     console.log("Results", results);
- const formatted = results.map((c) => ({
-  id: c.id,
-  name: c.name,
-  role: c.role ?? "Unknown Role",
-  match: Math.round((c.match ?? 0)),
-  location: c.location ?? "Remote",
-
-  // ✅ NEW
-  experience: `${c.years_exp ?? 0}+ yrs`,
-
-  available:
-    c.availability === "available-now" || c.availability === "open",
-
-  skills: Array.isArray(c.skills)
-    ? c.skills
-        .slice(0, 3)
-        .map((s: unknown) =>
-          typeof s === "string" ? s : (s as { name: string }).name
-        )
-    : [],
-}));
+    const formatted = results.map((c) => ({
+      id: c.id,
+      name: c.name,
+      role: c.role ?? "Unknown Role",
+      match: Math.round(c.match ?? 0),
+      location: c.location ?? "Remote",
+      experience: `${c.years_exp ?? 0}+ yrs`,
+      availability: c.availability ?? "", 
+      available:
+        c.availability === "available-now" || c.availability === "open",
+      skills: Array.isArray(c.skills)
+        ? c.skills
+            .slice(0, 3)
+            .map((s: unknown) =>
+              typeof s === "string" ? s : (s as { name: string }).name,
+            )
+        : [],
+    }));
 
     return NextResponse.json({ results: formatted });
   } catch (err: unknown) {
