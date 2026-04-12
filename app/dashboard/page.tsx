@@ -1,29 +1,12 @@
-// app/dashboard/page.tsx
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import {
-  Box,
-  Typography,
-  Button,
-  Chip,
-  InputBase,
   Drawer,
-  IconButton,
-  TextField,
   CircularProgress,
-  Tabs,
-  Tab,
   useMediaQuery,
   useTheme,
 } from "@mui/material";
-import SearchIcon from "@mui/icons-material/Search";
-import TuneIcon from "@mui/icons-material/TuneOutlined";
-import SearchOffOutlinedIcon from "@mui/icons-material/SearchOffOutlined";
-import FilterListIcon from "@mui/icons-material/FilterList";
-import CloseIcon from "@mui/icons-material/Close";
-import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
-import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import { TalentCard, TalentCardItem } from "../Components/TalentCardItem";
 import { UploadZone } from "../Components/UploadZone";
 
@@ -43,21 +26,8 @@ interface JDStatus {
   inferred_domain: string | null;
 }
 
-// ─── Constants ────────────────────────────────────────────────────────────────
-
-const FILTER_OPTIONS = [
-  "Available now",
-  "Remote OK",
-  "Top 10% match",
-  "Verified only",
-];
-
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-/**
- * Safely reads the org-id cookie.
- * Must only be called inside event handlers or effects (never during render).
- */
 function getOrgId(): string {
   if (typeof document === "undefined") return "";
   const match = document.cookie
@@ -76,12 +46,10 @@ async function uploadJDFile(
   const form = new FormData();
   form.append("file", file);
   form.append("title", title);
-
   const res = await fetch(`/api/orgs/${orgId}/job-descriptions/upload`, {
     method: "POST",
     body: form,
   });
-
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
     throw new Error(err.error || "Upload failed.");
@@ -99,7 +67,6 @@ async function pasteJDText(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ title, raw_text: rawText }),
   });
-
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
     throw new Error(err.error || "Save failed.");
@@ -114,128 +81,14 @@ async function fetchJDStatus(orgId: string, jdId: string): Promise<JDStatus> {
   return data.job_description as JDStatus;
 }
 
-// ─── InferencePanel ───────────────────────────────────────────────────────────
-
-function InferencePanel({ jd }: { jd: JDStatus | null }) {
-  if (!jd) return null;
-
-  if (jd.status === "inferring") {
-    return (
-      <Box
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          gap: 1.5,
-          p: 2,
-          bgcolor: "#EEF2FF",
-          borderRadius: "10px",
-          border: "1px solid rgba(26,53,232,0.15)",
-        }}
-      >
-        <CircularProgress size={16} thickness={5} sx={{ color: "#1A35E8" }} />
-        <Box>
-          <Typography
-            sx={{ fontSize: 12.5, fontWeight: 700, color: "#1A35E8" }}
-          >
-            AI Inference Running…
-          </Typography>
-          <Typography sx={{ fontSize: 11, color: "#6B7280" }}>
-            Extracting skills, seniority and personality signals
-          </Typography>
-        </Box>
-      </Box>
-    );
-  }
-
-  if (jd.status === "active" && jd.inferred_skills?.length > 0) {
-    return (
-      <Box
-        sx={{
-          p: 2,
-          bgcolor: "#F0FDF4",
-          borderRadius: "10px",
-          border: "1px solid rgba(16,185,129,0.2)",
-        }}
-      >
-        <Box
-          sx={{ display: "flex", alignItems: "center", gap: 0.75, mb: 1.25 }}
-        >
-          <CheckCircleOutlineIcon sx={{ fontSize: 14, color: "#059669" }} />
-          <Typography sx={{ fontSize: 12, fontWeight: 700, color: "#059669" }}>
-            Inference Complete
-          </Typography>
-          {jd.inferred_seniority && (
-            <Chip
-              label={jd.inferred_seniority}
-              size="small"
-              sx={{
-                height: 18,
-                fontSize: 10,
-                bgcolor: "#D1FAE5",
-                color: "#065F46",
-                fontWeight: 600,
-                "& .MuiChip-label": { px: 1 },
-                ml: "auto",
-              }}
-            />
-          )}
-        </Box>
-
-        {jd.inferred_domain && (
-          <Typography sx={{ fontSize: 11, color: "#6B7280", mb: 1 }}>
-            Domain:{" "}
-            <strong style={{ color: "#374151" }}>{jd.inferred_domain}</strong>
-          </Typography>
-        )}
-
-        <Typography
-          sx={{
-            color: "#6B7280",
-            fontSize: 10.5,
-            fontWeight: 600,
-            mb: 0.75,
-            textTransform: "uppercase",
-            letterSpacing: "0.05em",
-          }}
-        >
-          Inferred Skills
-        </Typography>
-
-        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.75 }}>
-          {jd.inferred_skills.map((skill) => (
-            <Chip
-              key={skill.name}
-              label={`${skill.name} · ${Math.round(skill.weight * 100)}%`}
-              size="small"
-              sx={{
-                height: 22,
-                fontSize: 10.5,
-                bgcolor:
-                  skill.weight >= 0.8
-                    ? "#DCFCE7"
-                    : skill.weight >= 0.5
-                      ? "#F3F4F6"
-                      : "#FEF9C3",
-                color:
-                  skill.weight >= 0.8
-                    ? "#166534"
-                    : skill.weight >= 0.5
-                      ? "#374151"
-                      : "#92400E",
-                fontWeight: 600,
-                "& .MuiChip-label": { px: 1 },
-              }}
-            />
-          ))}
-        </Box>
-      </Box>
-    );
-  }
-
-  return null;
-}
-
-// ─── LeftPanelContent ─────────────────────────────────────────────────────────
+const PERSONALITY_TRAITS = [
+  { name: "Leadership", score: 92, icon: "🏆" },
+  { name: "Team Player", score: 85, icon: "🤝" },
+  { name: "Communicator", score: 88, icon: "💬" },
+  { name: "Bias to Action", score: 80, icon: "⚡" },
+  { name: "Problem Solver", score: 95, icon: "🧩" },
+  { name: "Data Driven", score: 90, icon: "📊" },
+];
 
 function LeftPanelContent({
   jd,
@@ -244,6 +97,10 @@ function LeftPanelContent({
   isLoading,
   error,
   onClose,
+  matchThreshold,
+  onThresholdChange,
+  candidateCount,
+  onRefreshMatches,
 }: {
   jd: JDStatus | null;
   onFileUpload: (file: File, title: string) => void;
@@ -251,6 +108,10 @@ function LeftPanelContent({
   isLoading: boolean;
   error: string | null;
   onClose?: () => void;
+  matchThreshold: number;
+  onThresholdChange: (val: number) => void;
+  candidateCount: number;
+  onRefreshMatches: () => void;
 }) {
   const [tab, setTab] = useState(0);
   const [title, setTitle] = useState("");
@@ -259,282 +120,497 @@ function LeftPanelContent({
 
   const handleFileSelected = (file: File) => {
     setSelectedFile(file);
-    if (!title.trim()) {
-      setTitle(file.name.replace(/\.[^/.]+$/, ""));
-    }
+    if (!title.trim()) setTitle(file.name.replace(/\.[^/.]+$/, ""));
+  };
+
+  // Mock inferred skills from JD
+  const inferredSkills = jd?.inferred_skills ?? [];
+  const hasInferredSkills = inferredSkills.length > 0;
+  const isActive = jd?.status === "active";
+  const isInferring = jd?.status === "inferring";
+
+
+  const mockSkills = [
+    "Product Strategy",
+    "Roadmapping",
+    "SQL / Analytics",
+    "Agile/Scrum",
+    "API Design",
+    "5+ Years PM",
+    "B2B SaaS",
+    "Fintech Domain",
+  ];
+
+  const skillColors: Record<string, string> = {
+    "Product Strategy": "bg-blue-100 text-blue-700",
+    Roadmapping: "bg-purple-100 text-purple-700",
+    "SQL / Analytics": "bg-green-100 text-green-700",
+    "Agile/Scrum": "bg-yellow-100 text-yellow-800",
+    "API Design": "bg-pink-100 text-pink-700",
+    "5+ Years PM": "bg-orange-100 text-orange-700",
+    "B2B SaaS": "bg-indigo-100 text-indigo-700",
+    "Fintech Domain": "bg-teal-100 text-teal-700",
   };
 
   return (
-    <Box
-      sx={{
-        width: { xs: 300, sm: 380 },
-        height: "100%",
-        bgcolor: "#FFFFFF",
-        p: 2.5,
-        display: "flex",
-        flexDirection: "column",
-        gap: 2,
-        overflowY: "auto",
-      }}
+    <div
+      className="flex flex-col h-full bg-white overflow-y-auto"
+      style={{ width: "100%" }}
     >
       {/* Header */}
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "flex-start",
-        }}
-      >
-        <Box>
-          <Typography sx={{ color: "#111827", fontWeight: 700, fontSize: 14 }}>
-            Smart Match Engine
-          </Typography>
-          <Box
-            sx={{ display: "flex", alignItems: "center", gap: 0.75, mt: 0.5 }}
-          >
-            <Box
-              sx={{
-                width: 6,
-                height: 6,
-                borderRadius: "50%",
-                bgcolor: "#10B981",
-              }}
-            />
-            <Typography sx={{ color: "#6B7280", fontSize: 11.5 }}>
-              AI inference active
-            </Typography>
-          </Box>
-        </Box>
-        {onClose && (
-          <IconButton
-            onClick={onClose}
-            size="small"
-            sx={{ color: "#9CA3AF", mt: -0.5 }}
-          >
-            <CloseIcon fontSize="small" />
-          </IconButton>
-        )}
-      </Box>
-
-      {/* Tabs */}
-      <Tabs
-        value={tab}
-        onChange={(_, v) => setTab(v)}
-        sx={{
-          minHeight: 34,
-          "& .MuiTab-root": {
-            fontSize: 12,
-            fontWeight: 600,
-            minHeight: 34,
-            textTransform: "none",
-            color: "#9CA3AF",
-            "&.Mui-selected": { color: "#1A35E8" },
-          },
-          "& .MuiTabs-indicator": { bgcolor: "#1A35E8", height: 2 },
-          borderBottom: "1px solid rgba(0,0,0,0.08)",
-        }}
-      >
-        <Tab label="Upload File" />
-        <Tab label="Paste Text" />
-      </Tabs>
-
-      {/* Shared title field */}
-      <TextField
-        size="small"
-        placeholder="Job title e.g. Senior Product Designer"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        sx={{
-          "& .MuiOutlinedInput-root": {
-            fontSize: 12.5,
-            borderRadius: "8px",
-            "& fieldset": { borderColor: "rgba(0,0,0,0.12)" },
-            "&:hover fieldset": { borderColor: "rgba(26,53,232,0.4)" },
-            "&.Mui-focused fieldset": { borderColor: "#1A35E8" },
-          },
-        }}
-      />
-
-      {/* Tab: Upload */}
-      {tab === 0 ? (
-        <>
-          <UploadZone onUpload={handleFileSelected} />
-          {selectedFile && (
-            <Box
-              sx={{
-                p: 1.5,
-                bgcolor: "#F0F4FF",
-                borderRadius: "8px",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
+      <div className="px-5 pt-5 pb-3">
+        <div className="flex items-start justify-between">
+          <div>
+            <h2 className="text-[15px] font-bold text-gray-900 tracking-tight">
+              Smart Match Engine
+            </h2>
+            <div className="flex items-center gap-1.5 mt-1">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" />
+              <span className="text-[11px] text-gray-500">
+                AI inference active
+              </span>
+            </div>
+          </div>
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-600 p-1 rounded"
             >
-              <Typography
-                sx={{ fontSize: 11.5, color: "#374151", fontWeight: 600 }}
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
               >
-                📄 {selectedFile.name}
-              </Typography>
-              <IconButton
-                size="small"
-                onClick={() => setSelectedFile(null)}
-                sx={{ color: "#9CA3AF" }}
-              >
-                <CloseIcon sx={{ fontSize: 14 }} />
-              </IconButton>
-            </Box>
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
           )}
-          <Button
-            fullWidth
-            variant="contained"
-            disabled={!selectedFile || !title.trim() || isLoading}
-            onClick={() => selectedFile && onFileUpload(selectedFile, title)}
-            startIcon={
-              isLoading ? (
-                <CircularProgress size={14} sx={{ color: "#fff" }} />
-              ) : (
-                <AutoAwesomeIcon sx={{ fontSize: 16 }} />
-              )
-            }
-            sx={{
-              bgcolor: "#1A35E8",
-              borderRadius: "8px",
-              textTransform: "none",
-              fontWeight: 700,
-              fontSize: 13,
-              height: 40,
-              "&:hover": { bgcolor: "#1430c4" },
-              "&.Mui-disabled": {
-                bgcolor: "rgba(26,53,232,0.3)",
-                color: "#fff",
-              },
-            }}
-          >
-            {isLoading ? "Uploading…" : "Upload & Analyse"}
-          </Button>
-        </>
-      ) : (
-        <>
-          <TextField
-            multiline
-            minRows={6}
-            maxRows={12}
-            placeholder="Paste the full job description text here…"
-            value={pasteText}
-            onChange={(e) => setPasteText(e.target.value)}
-            sx={{
-              "& .MuiOutlinedInput-root": {
-                fontSize: 12,
-                borderRadius: "8px",
-                "& fieldset": { borderColor: "rgba(0,0,0,0.12)" },
-                "&:hover fieldset": { borderColor: "rgba(26,53,232,0.4)" },
-                "&.Mui-focused fieldset": { borderColor: "#1A35E8" },
-              },
+        </div>
+      </div>
+
+      {/* JD File card (shown when JD loaded) */}
+      {jd && (
+        <div className="mx-4 mb-3">
+          <div className="flex items-center gap-3 p-3 rounded-xl border-2 border-emerald-400 bg-emerald-50">
+            <div className="w-9 h-9 rounded-lg bg-emerald-100 flex items-center justify-center flex-shrink-0">
+              <svg
+                className="w-4 h-4 text-emerald-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                />
+              </svg>
+            </div>
+            <div className="min-w-0">
+              <p className="text-[13px] font-semibold text-gray-900 truncate">
+                {jd.title}
+              </p>
+              <p className="text-[11px] text-gray-500">
+                JD_SeniorPM_Q4.pdf · 3.2 KB
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+      {!jd && (
+        <div className="px-4 pb-3">
+          {/* Tabs */}
+          <div className="flex border-b border-gray-200 mb-3">
+            <button
+              onClick={() => setTab(0)}
+              className={`text-[12px] font-semibold pb-2 mr-4 border-b-2 transition-colors ${
+                tab === 0
+                  ? "border-blue-600 text-blue-600"
+                  : "border-transparent text-gray-400"
+              }`}
+            >
+              Upload File
+            </button>
+            <button
+              onClick={() => setTab(1)}
+              className={`text-[12px] font-semibold pb-2 border-b-2 transition-colors ${
+                tab === 1
+                  ? "border-blue-600 text-blue-600"
+                  : "border-transparent text-gray-400"
+              }`}
+            >
+              Paste Text
+            </button>
+          </div>
+
+          {/* Title field */}
+          <input
+            type="text"
+            placeholder="Job title e.g. Senior Product Designer"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            className="w-full text-[12.5px] border border-gray-200 rounded-lg px-3 py-2 mb-3 focus:outline-none focus:border-blue-500 text-gray-700 placeholder-gray-400"
+          />
+
+          {tab === 0 ? (
+            <>
+              <UploadZone onUpload={handleFileSelected} />
+              {selectedFile && (
+                <div className="mt-2 flex items-center justify-between bg-blue-50 rounded-lg px-3 py-2">
+                  <span className="text-[11.5px] text-gray-700 font-semibold">
+                    📄 {selectedFile.name}
+                  </span>
+                  <button
+                    onClick={() => setSelectedFile(null)}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <svg
+                      className="w-3.5 h-3.5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              )}
+              <button
+                disabled={!selectedFile || !title.trim() || isLoading}
+                onClick={() =>
+                  selectedFile && onFileUpload(selectedFile, title)
+                }
+                className="mt-3 w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white text-[13px] font-bold rounded-lg h-10 transition-colors"
+              >
+                {isLoading ? (
+                  <CircularProgress size={14} sx={{ color: "#fff" }} />
+                ) : (
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M5 3l14 9-14 9V3z"
+                    />
+                  </svg>
+                )}
+                {isLoading ? "Uploading…" : "Upload & Analyse"}
+              </button>
+            </>
+          ) : (
+            <>
+              <textarea
+                rows={6}
+                placeholder="Paste the full job description text here…"
+                value={pasteText}
+                onChange={(e) => setPasteText(e.target.value)}
+                className="w-full text-[12px] border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500 text-gray-700 placeholder-gray-400 resize-none"
+              />
+              <button
+                disabled={
+                  pasteText.trim().length < 50 || !title.trim() || isLoading
+                }
+                onClick={() => onTextSubmit(title, pasteText)}
+                className="mt-2 w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white text-[13px] font-bold rounded-lg h-10 transition-colors"
+              >
+                {isLoading ? (
+                  <CircularProgress size={14} sx={{ color: "#fff" }} />
+                ) : (
+                  "✨"
+                )}
+                {isLoading ? "Saving…" : "Save & Analyse"}
+              </button>
+            </>
+          )}
+
+          {error && (
+            <div className="mt-2 p-2.5 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-[11.5px] text-red-600">{error}</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Inferring state */}
+      {isInferring && (
+        <div className="mx-4 mb-3 flex items-center gap-2.5 p-3 bg-indigo-50 rounded-xl border border-indigo-200">
+          <CircularProgress size={14} thickness={5} sx={{ color: "#4F46E5" }} />
+          <div>
+            <p className="text-[12px] font-bold text-indigo-700">
+              AI Inference Running…
+            </p>
+            <p className="text-[10.5px] text-gray-500">
+              Extracting skills & signals
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Technical Skills Detected */}
+      {(isActive || hasInferredSkills || jd) && (
+        <div className="px-4 pb-4">
+          <div className="flex items-center gap-1.5 mb-2.5">
+            <svg
+              className="w-3 h-3 text-blue-600"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+            </svg>
+            <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">
+              Technical Skills Detected
+            </span>
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {(hasInferredSkills
+              ? inferredSkills.map((s) => s.name)
+              : mockSkills
+            ).map((skill) => (
+              <span
+                key={skill}
+                className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full border ${
+                  skillColors[skill] ||
+                  "bg-gray-100 text-gray-600 border-gray-200"
+                } border-transparent`}
+              >
+                {skill}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {jd && (
+        <div className="px-4 pb-4">
+          <div className="flex items-center gap-1.5 mb-3">
+            <span className="text-[13px]">🎯</span>
+            <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">
+              Personality & Culture Fit
+            </span>
+          </div>
+          <div className="flex flex-col gap-2.5">
+            {PERSONALITY_TRAITS.map((trait) => (
+              <div key={trait.name} className="flex items-center gap-2">
+                <span className="text-[13px] w-5 text-center">
+                  {trait.icon}
+                </span>
+                <span className="text-[12px] text-gray-700 w-28 shrink-0">
+                  {trait.name}
+                </span>
+                <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-linear-to-r from-blue-500 to-teal-400"
+                    style={{ width: `${trait.score}%` }}
+                  />
+                </div>
+                <span className="text-[11.5px] font-bold text-gray-600 w-8 text-right">
+                  {trait.score}%
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className="flex-1" />
+
+      {jd && (
+        <div className="px-4 pb-4 border-t border-gray-100 pt-4">
+          <div className="flex items-end justify-between mb-2">
+            <div>
+              <p className="text-[11px] text-gray-500 mb-0.5">
+                Match Threshold
+              </p>
+              <span className="text-[36px] font-black text-blue-600 leading-none">
+                {matchThreshold}%
+              </span>
+            </div>
+            <div className="text-right">
+              <p className="text-[10px] text-gray-400 mb-0.5">candidates</p>
+              <span className="text-[22px] font-black text-blue-600">
+                {candidateCount}
+              </span>
+            </div>
+          </div>
+          <input
+            type="range"
+            min={40}
+            max={95}
+            value={matchThreshold}
+            onChange={(e) => onThresholdChange(Number(e.target.value))}
+            className="w-full h-1.5 rounded-full appearance-none cursor-pointer"
+            style={{
+              background: `linear-gradient(to right, #2563EB ${((matchThreshold - 40) / 55) * 100}%, #E5E7EB ${((matchThreshold - 40) / 55) * 100}%)`,
             }}
           />
-          <Button
-            fullWidth
-            variant="contained"
-            disabled={
-              pasteText.trim().length < 50 || !title.trim() || isLoading
-            }
-            onClick={() => onTextSubmit(title, pasteText)}
-            startIcon={
-              isLoading ? (
-                <CircularProgress size={14} sx={{ color: "#fff" }} />
-              ) : (
-                <AutoAwesomeIcon sx={{ fontSize: 16 }} />
-              )
-            }
-            sx={{
-              bgcolor: "#1A35E8",
-              borderRadius: "8px",
-              textTransform: "none",
-              fontWeight: 700,
-              fontSize: 13,
-              height: 40,
-              "&:hover": { bgcolor: "#1430c4" },
-              "&.Mui-disabled": {
-                bgcolor: "rgba(26,53,232,0.3)",
-                color: "#fff",
-              },
-            }}
+          <div className="flex justify-between mt-1">
+            <span className="text-[10px] text-gray-400">Broader (40%)</span>
+            <span className="text-[10px] text-gray-400">Precise (95%)</span>
+          </div>
+
+          <button
+            onClick={onRefreshMatches}
+            className="mt-3 w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-[13px] font-bold rounded-xl h-10 transition-colors"
           >
-            {isLoading ? "Saving…" : "Save & Analyse"}
-          </Button>
-        </>
-      )}
-
-      {/* Error */}
-      {error && (
-        <Box
-          sx={{
-            p: 1.5,
-            bgcolor: "#FEF2F2",
-            borderRadius: "8px",
-            border: "1px solid rgba(239,68,68,0.2)",
-          }}
-        >
-          <Typography sx={{ fontSize: 11.5, color: "#DC2626" }}>
-            {error}
-          </Typography>
-        </Box>
-      )}
-
-      {/* AI inference result */}
-      <InferencePanel jd={jd} />
-
-      {/* Filters — visible once JD is active */}
-      {jd?.status === "active" && (
-        <Box sx={{ mt: 1 }}>
-          <Typography
-            sx={{
-              color: "#6B7280",
-              fontSize: 11,
-              fontWeight: 600,
-              mb: 1,
-              textTransform: "uppercase",
-              letterSpacing: "0.05em",
-            }}
-          >
-            Filters
-          </Typography>
-          {FILTER_OPTIONS.map((f) => (
-            <Box
-              key={f}
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                gap: 1,
-                py: 0.75,
-                cursor: "pointer",
-                "&:hover": { "& .label": { color: "#111827" } },
-              }}
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
             >
-              <Box
-                sx={{
-                  width: 14,
-                  height: 14,
-                  borderRadius: "4px",
-                  border: "1.5px solid #D1D5DB",
-                  flexShrink: 0,
-                }}
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
               />
-              <Typography
-                className="label"
-                sx={{
-                  color: "#6B7280",
-                  fontSize: 12,
-                  transition: "color 0.15s",
-                }}
-              >
-                {f}
-              </Typography>
-            </Box>
-          ))}
-        </Box>
+            </svg>
+            Refresh Matches
+          </button>
+        </div>
       )}
-    </Box>
+    </div>
+  );
+}
+
+// ─── Stats Bar ────────────────────────────────────────────────────────────────
+
+function StatsBar({
+  matched,
+  topMatch,
+  avgMatch,
+  computeTime,
+}: {
+  matched: number;
+  topMatch: number;
+  avgMatch: number;
+  computeTime: string;
+}) {
+  return (
+    <div className="flex items-center gap-6 px-6 py-3 bg-white border-b border-gray-100">
+      {/* Matched */}
+      <div className="flex items-center gap-2.5">
+        <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center">
+          <svg
+            className="w-4 h-4 text-blue-500"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"
+            />
+          </svg>
+        </div>
+        <div>
+          <p className="text-[20px] font-black text-gray-900 leading-none">
+            {matched}
+          </p>
+          <p className="text-[11px] text-gray-500 mt-0.5">Matched</p>
+        </div>
+      </div>
+
+      <div className="w-px h-8 bg-gray-100" />
+
+      {/* 90%+ match */}
+      <div className="flex items-center gap-2.5">
+        <div className="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center">
+          <svg
+            className="w-4 h-4 text-emerald-500"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M5 13l4 4L19 7"
+            />
+          </svg>
+        </div>
+        <div>
+          <p className="text-[20px] font-black text-gray-900 leading-none">
+            {topMatch}
+          </p>
+          <p className="text-[11px] text-gray-500 mt-0.5">90%+ match</p>
+        </div>
+      </div>
+
+      <div className="w-px h-8 bg-gray-100" />
+
+      {/* Avg match */}
+      <div className="flex items-center gap-2.5">
+        <div className="w-8 h-8 rounded-full bg-yellow-50 flex items-center justify-center">
+          <svg
+            className="w-4 h-4 text-yellow-500"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
+            />
+          </svg>
+        </div>
+        <div>
+          <p className="text-[20px] font-black text-gray-900 leading-none">
+            {avgMatch}%
+          </p>
+          <p className="text-[11px] text-gray-500 mt-0.5">Avg match</p>
+        </div>
+      </div>
+
+      <div className="w-px h-8 bg-gray-100" />
+
+      {/* Compute time */}
+      <div className="flex items-center gap-2.5">
+        <div className="w-8 h-8 rounded-full bg-sky-50 flex items-center justify-center">
+          <svg
+            className="w-4 h-4 text-sky-500"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+        </div>
+        <div>
+          <p className="text-[20px] font-black text-gray-900 leading-none">
+            {computeTime}
+          </p>
+          <p className="text-[11px] text-gray-500 mt-0.5">Compute time</p>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -544,29 +620,61 @@ export default function DashboardPage() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
-  // All fetched results — never mutated by search
   const [allResults, setAllResults] = useState<TalentCard[]>([]);
-  // Derived: filtered view shown in the grid
   const [searchQuery, setSearchQuery] = useState("");
   const [leftDrawerOpen, setLeftDrawerOpen] = useState(false);
+  const [matchThreshold, setMatchThreshold] = useState(75);
 
-  // JD state
   const [jd, setJd] = useState<JDStatus | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
-  // ── Derived filtered results (never mutates allResults) ──────────────────────
-  const visibleResults = searchQuery.trim()
-    ? allResults.filter(
-        (r) =>
-          r.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          r.role.toLowerCase().includes(searchQuery.toLowerCase()),
-      )
-    : allResults;
+  const [draftLocations, setDraftLocations] = useState<string[]>([]);
+  const [draftExperience, setDraftExperience] = useState<string[]>([]);
 
-  // ── Load matches for a JD ────────────────────────────────────────────────────
+  const [appliedLocations, setAppliedLocations] = useState<string[]>([]);
+  const [appliedExperience, setAppliedExperience] = useState<string[]>([]);
+  const EXPERIENCE_BUCKETS = [
+    { label: "0-2 yrs", min: 0, max: 2 },
+    { label: "3-5 yrs", min: 3, max: 5 },
+    { label: "6-10 yrs", min: 6, max: 10 },
+    { label: "10+ yrs", min: 11, max: 50 },
+  ];
+  function getYears(exp: string) {
+    return parseInt(exp);
+  }
+
+  useEffect(() => {
+    if (filtersOpen) {
+      setDraftLocations(appliedLocations);
+      setDraftExperience(appliedExperience);
+    }
+  }, [filtersOpen, appliedLocations, appliedExperience]);
+
+  const visibleResults = allResults.filter((r) => {
+    const matchesSearch =
+      r.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      r.role.toLowerCase().includes(searchQuery.toLowerCase());
+
+    const matchesLocation =
+      appliedLocations.length === 0 || appliedLocations.includes(r.location);
+
+    const years = getYears(r.experience);
+
+    const matchesExperience =
+      appliedExperience.length === 0 ||
+      appliedExperience.some((bucketLabel) => {
+        const bucket = EXPERIENCE_BUCKETS.find((b) => b.label === bucketLabel);
+        if (!bucket) return false;
+        return years >= bucket.min && years <= bucket.max;
+      });
+
+    return matchesSearch && matchesLocation && matchesExperience;
+  });
+
   const loadMatches = useCallback(async (jdId: string) => {
     const orgId = getOrgId();
     if (!orgId) return;
@@ -582,28 +690,23 @@ export default function DashboardPage() {
       setAllResults(data.results ?? []);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Unknown error";
-      console.error("Match fetch error:", message);
       setError(message);
     }
   }, []);
 
-  // ── Polling until JD is active ───────────────────────────────────────────────
   const startPolling = useCallback(
     (jdId: string) => {
       const orgId = getOrgId();
       if (pollingRef.current) clearInterval(pollingRef.current);
-
       pollingRef.current = setInterval(async () => {
         try {
           const latest = await fetchJDStatus(orgId, jdId);
           setJd(latest);
-
           if (latest.status === "active") {
             clearInterval(pollingRef.current!);
             pollingRef.current = null;
             loadMatches(jdId);
           }
-
           if (latest.status === "closed" || latest.status === "paused") {
             clearInterval(pollingRef.current!);
           }
@@ -615,13 +718,9 @@ export default function DashboardPage() {
     [loadMatches],
   );
 
-  // ── Restore last session on mount ────────────────────────────────────────────
-  // In the mount useEffect, replace the localStorage restore with:
   useEffect(() => {
     const orgId = getOrgId();
     if (!orgId) return;
-
-    // Fetch the most recent active/inferring JD for this org
     fetch(`/api/orgs/${orgId}/job-descriptions/latest`)
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
@@ -632,13 +731,11 @@ export default function DashboardPage() {
         if (latest.status === "inferring") startPolling(latest.id);
       })
       .catch(() => {});
-
     return () => {
       if (pollingRef.current) clearInterval(pollingRef.current);
     };
   }, [loadMatches, startPolling]);
 
-  // ── Upload handler ────────────────────────────────────────────────────────────
   const handleFileUpload = async (file: File, title: string) => {
     const orgId = getOrgId();
     setIsLoading(true);
@@ -664,7 +761,6 @@ export default function DashboardPage() {
     }
   };
 
-  // ── Paste handler ─────────────────────────────────────────────────────────────
   const handleTextSubmit = async (title: string, rawText: string) => {
     const orgId = getOrgId();
     setIsLoading(true);
@@ -673,7 +769,6 @@ export default function DashboardPage() {
     setJd(null);
     try {
       const { jd_id } = await pasteJDText(orgId, title, rawText);
-      localStorage.setItem("vetta_last_jd_id", jd_id);
       setJd({
         id: jd_id,
         status: "inferring",
@@ -694,29 +789,54 @@ export default function DashboardPage() {
   const isInferring = jd?.status === "inferring";
   const hasResults = visibleResults.length > 0;
 
+  // Derive stats from results
+  const matched = allResults.length;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const topMatch = allResults.filter(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (r: any) => (r.matchScore ?? 0) >= 90,
+  ).length;
+  const avgMatch =
+    matched > 0
+      ? Math.round(
+          allResults.reduce(
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (sum: number, r: any) => sum + (r.matchScore ?? 0),
+            0,
+          ) / matched,
+        )
+      : 87;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
+  const leftPanel = (
+    <LeftPanelContent
+      jd={jd}
+      onFileUpload={handleFileUpload}
+      onTextSubmit={handleTextSubmit}
+      isLoading={isLoading}
+      error={error}
+      onClose={isMobile ? () => setLeftDrawerOpen(false) : undefined}
+      matchThreshold={matchThreshold}
+      onThresholdChange={setMatchThreshold}
+      candidateCount={matched}
+      onRefreshMatches={() => jd && loadMatches(jd.id)}
+    />
+  );
+  const locationCounts = allResults.reduce(
+    (acc: Record<string, number>, curr) => {
+      acc[curr.location] = (acc[curr.location] || 0) + 1;
+      return acc;
+    },
+    {},
+  );
+
   return (
-    <Box sx={{ display: "flex", height: "100%", overflow: "hidden" }}>
+    <div className="flex h-full overflow-hidden">
       {/* Desktop left panel */}
       {!isMobile && (
-        <Box
-          sx={{
-            width: 380,
-            flexShrink: 0,
-            bgcolor: "#FFFFFF",
-            borderRight: "1px solid rgba(0,0,0,0.08)",
-            display: "flex",
-            flexDirection: "column",
-            overflow: "hidden",
-          }}
-        >
-          <LeftPanelContent
-            jd={jd}
-            onFileUpload={handleFileUpload}
-            onTextSubmit={handleTextSubmit}
-            isLoading={isLoading}
-            error={error}
-          />
-        </Box>
+        <div className="w-97.5 shrink-0 bg-white border-r border-gray-100 flex flex-col overflow-hidden">
+          {leftPanel}
+        </div>
       )}
 
       {/* Mobile drawer */}
@@ -728,259 +848,314 @@ export default function DashboardPage() {
           ModalProps={{ keepMounted: true }}
           sx={{
             "& .MuiDrawer-paper": {
-              width: "min(300px, 85vw)",
+              width: "min(320px, 85vw)",
               border: "none",
               p: 0,
             },
           }}
         >
-          <LeftPanelContent
-            jd={jd}
-            onFileUpload={handleFileUpload}
-            onTextSubmit={handleTextSubmit}
-            isLoading={isLoading}
-            error={error}
-            onClose={() => setLeftDrawerOpen(false)}
-          />
+          {leftPanel}
         </Drawer>
       )}
 
       {/* Main panel */}
-      <Box
-        sx={{
-          flexGrow: 1,
-          display: "flex",
-          flexDirection: "column",
-          minWidth: 0,
-        }}
-      >
-        {/* Topbar */}
-        <Box
-          sx={{
-            px: { xs: 2, sm: 3 },
-            py: 1.5,
-            bgcolor: "#F5F2EC",
-            borderBottom: "1px solid rgba(0,0,0,0.07)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: 1.5,
-            flexWrap: { xs: "wrap", sm: "nowrap" },
-          }}
-        >
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              gap: 1.5,
-              flexShrink: 0,
-            }}
-          >
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        {/* Top bar */}
+        <div className="flex items-center justify-between px-6 py-3 bg-white border-b border-gray-100 gap-4 flex-wrap">
+          <div className="flex items-center gap-3">
             {isMobile && (
-              <IconButton
+              <button
                 onClick={() => setLeftDrawerOpen(true)}
-                size="small"
-                sx={{
-                  bgcolor: "#fff",
-                  border: "1px solid rgba(0,0,0,0.1)",
-                  borderRadius: "8px",
-                  width: 36,
-                  height: 36,
-                  color: "#374151",
-                  "&:hover": { borderColor: "#1A35E8", color: "#1A35E8" },
-                }}
+                className="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-200 hover:border-blue-500 text-gray-600 hover:text-blue-600 transition-colors"
               >
-                <FilterListIcon sx={{ fontSize: 18 }} />
-              </IconButton>
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 6h16M4 12h16M4 18h7"
+                  />
+                </svg>
+              </button>
             )}
-            <Box>
-              <Typography
-                sx={{
-                  fontWeight: 700,
-                  fontSize: { xs: 15, sm: 17 },
-                  color: "#0F1117",
-                }}
-              >
+            <div>
+              <h1 className="text-[17px] font-bold text-gray-900">
                 Talent Match Results
-              </Typography>
-              {jd && (
-                <Typography sx={{ fontSize: 11, color: "#9CA3AF" }}>
-                  {jd.title}
-                </Typography>
-              )}
-            </Box>
-          </Box>
+              </h1>
+              {jd && <p className="text-[11px] text-gray-400">{jd.title}</p>}
+            </div>
+          </div>
 
-          <Box
-            sx={{
-              display: "flex",
-              gap: 1,
-              alignItems: "center",
-              flexWrap: "nowrap",
-              width: { xs: "100%", sm: "auto" },
-            }}
-          >
-            {/* Search — filters visibleResults, never destroys allResults */}
-            <Box
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                gap: 1,
-                bgcolor: "#fff",
-                border: "1px solid rgba(0,0,0,0.1)",
-                borderRadius: "8px",
-                px: 1.5,
-                height: 36,
-                flexGrow: { xs: 1, sm: 0 },
-                width: { sm: 200, md: 220 },
-              }}
-            >
-              <SearchIcon
-                sx={{ color: "#9CA3AF", fontSize: 18, flexShrink: 0 }}
-              />
-              <InputBase
-                placeholder="Search talent..."
+          <div className="flex items-center gap-2 flex-wrap">
+            {/* Search */}
+            <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-lg px-3 h-9 w-52">
+              <svg
+                className="w-4 h-4 text-gray-400 flex-shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
+              <input
+                type="text"
+                placeholder="Search talent pool..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                sx={{ fontSize: 13, color: "#374151", flex: 1, minWidth: 0 }}
+                className="text-[13px] text-gray-700 flex-1 min-w-0 focus:outline-none placeholder-gray-400 bg-transparent"
               />
               {searchQuery && (
-                <IconButton
-                  size="small"
+                <button
                   onClick={() => setSearchQuery("")}
-                  sx={{ p: 0.25, color: "#9CA3AF" }}
+                  className="text-gray-400 hover:text-gray-600"
                 >
-                  <CloseIcon sx={{ fontSize: 14 }} />
-                </IconButton>
+                  <svg
+                    className="w-3.5 h-3.5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
               )}
-            </Box>
+            </div>
 
-            <Button
-              startIcon={<TuneIcon />}
-              variant="outlined"
-              size="small"
-              sx={{
-                borderColor: "rgba(0,0,0,0.15)",
-                color: "#374151",
-                fontSize: 12,
-                fontWeight: 600,
-                textTransform: "none",
-                height: 36,
-                borderRadius: "8px",
-                whiteSpace: "nowrap",
-                display: { xs: "none", sm: "flex" },
-                "&:hover": { borderColor: "#1A35E8", color: "#1A35E8" },
-              }}
+            {/* Filters */}
+            <button
+              onClick={() => setFiltersOpen(true)}
+              className="hidden sm:flex items-center gap-1.5 h-9 px-3.5 border border-gray-200 rounded-lg text-[12px] font-semibold text-gray-600 hover:border-blue-500 hover:text-blue-600 transition-colors"
             >
               Filters
-            </Button>
+            </button>
 
-            <Box
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                gap: 0.75,
-                bgcolor: "#fff",
-                border: "1px solid rgba(0,0,0,0.1)",
-                borderRadius: "8px",
-                px: 1.5,
-                height: 36,
-                flexShrink: 0,
-              }}
-            >
-              <Box
-                sx={{
-                  width: 7,
-                  height: 7,
-                  borderRadius: "50%",
-                  bgcolor: "#10B981",
-                }}
-              />
-              <Typography
-                sx={{
-                  fontSize: 12,
-                  fontWeight: 600,
-                  color: "#374151",
-                  whiteSpace: "nowrap",
-                }}
-              >
+            {/* Vetted count */}
+            <div className="flex items-center gap-2 h-9 px-3.5 border border-gray-200 rounded-lg">
+              <span className="w-2 h-2 rounded-full bg-emerald-500" />
+              <span className="text-[12px] font-semibold text-gray-700 whitespace-nowrap">
                 1,240 vetted
-              </Typography>
-            </Box>
-          </Box>
-        </Box>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Stats bar */}
+        <StatsBar
+          matched={matched || 5}
+          topMatch={topMatch || 0}
+          avgMatch={avgMatch}
+          computeTime="2.1s"
+        />
 
         {/* Content area */}
-        <Box
-          sx={{
-            flexGrow: 1,
-            overflow: "auto",
-            p: { xs: 2, sm: 3 },
-            bgcolor: "#F5F2EC",
-          }}
-        >
-          {/* Inferring spinner */}
+        <div className="flex-1 overflow-auto p-6 bg-[#F5F2EC]">
+          {/* Inferring */}
           {isInferring && (
-            <Box sx={{ textAlign: "center", mt: 10 }}>
+            <div className="text-center mt-20">
               <CircularProgress />
-              <Typography sx={{ mt: 2, fontWeight: 700 }}>
+              <p className="mt-3 font-bold text-gray-700">
                 AI is matching talent…
-              </Typography>
-            </Box>
+              </p>
+            </div>
           )}
 
           {/* Empty state */}
           {!isInferring && !hasResults && !error && (
-            <Box sx={{ textAlign: "center", mt: 10, opacity: 0.6 }}>
-              <SearchOffOutlinedIcon sx={{ fontSize: 48 }} />
-              <Typography>Upload a Job Description to see matches.</Typography>
-            </Box>
+            <div className="text-center mt-20 opacity-50">
+              <svg
+                className="w-12 h-12 mx-auto text-gray-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
+              <p className="mt-3 text-gray-600">
+                Upload a Job Description to see matches.
+              </p>
+            </div>
           )}
 
-          {/* Error state */}
+          {/* Error */}
           {error && !isInferring && (
-            <Box
-              sx={{
-                textAlign: "center",
-                mt: 10,
-                p: 3,
-                bgcolor: "#FEF2F2",
-                borderRadius: "12px",
-                border: "1px solid rgba(239,68,68,0.2)",
-                maxWidth: 480,
-                mx: "auto",
-              }}
-            >
-              <Typography sx={{ color: "#DC2626", fontWeight: 600 }}>
-                {error}
-              </Typography>
-            </Box>
+            <div className="text-center mt-20 p-6 bg-red-50 border border-red-200 rounded-xl max-w-md mx-auto">
+              <p className="text-red-600 font-semibold">{error}</p>
+            </div>
           )}
 
-          {/* Results grid */}
+          {/* Results */}
           {!isInferring && hasResults && (
-            <Box>
-              <Typography sx={{ fontSize: 13, color: "#6B7280", mb: 2 }}>
-                {searchQuery
-                  ? `${visibleResults.length} of ${allResults.length} candidates match "${searchQuery}"`
-                  : `Found ${allResults.length} vetted candidates for "${jd?.title}"`}
-              </Typography>
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h2 className="text-[18px] font-bold text-gray-900">
+                    Matched Candidates
+                  </h2>
+                  <p className="text-[13px] text-gray-500 mt-0.5">
+                    {searchQuery
+                      ? `${visibleResults.length} of ${allResults.length} match "${searchQuery}"`
+                      : `Found ${allResults.length} vetted candidates for "${jd?.title}"`}
+                  </p>
+                </div>
+                <button className="hidden sm:flex items-center gap-1.5 h-8 px-3 border border-gray-200 bg-white rounded-lg text-[12px] font-semibold text-gray-600 hover:border-blue-500 hover:text-blue-600 transition-colors">
+                  <svg
+                    className="w-3.5 h-3.5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 6h16M4 12h10m-10 6h7"
+                    />
+                  </svg>
+                  Sort by Match
+                </button>
+              </div>
 
-              <Box
-                sx={{
-                  display: "grid",
-                  gap: 2,
+              <Drawer
+                anchor="right"
+                open={filtersOpen}
+                onClose={() => setFiltersOpen(false)}
+                sx={{ "& .MuiDrawer-paper": { width: 320, p: 2 } }}
+              >
+                <div className="flex flex-col h-full">
+                  {/* Header */}
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="font-bold text-gray-900">Filters</h2>
+                    <button onClick={() => setFiltersOpen(false)}>✕</button>
+                  </div>
+
+                  <div>
+                    <p className="text-[12px] font-semibold text-gray-500 mb-2">
+                      Location
+                    </p>
+
+                    <div className="flex flex-col gap-2">
+                      {Object.entries(locationCounts).map(([loc, count]) => {
+                        const active = draftLocations.includes(loc);
+
+                        return (
+                          <button
+                            key={loc}
+                            onClick={() => {
+                              setDraftLocations((prev) =>
+                                prev.includes(loc)
+                                  ? prev.filter((l) => l !== loc)
+                                  : [...prev, loc],
+                              );
+                            }}
+                            className={`flex items-center justify-between px-3 py-2 rounded-lg border text-sm ${
+                              active
+                                ? "bg-blue-50 border-blue-500 text-blue-700"
+                                : "border-gray-200 text-gray-600"
+                            }`}
+                          >
+                            <span>{loc}</span>
+                            <span className="text-xs font-semibold">
+                              {count}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* EXPERIENCE FILTER */}
+                  <div className="mt-6">
+                    <p className="text-[12px] font-semibold text-gray-500 mb-2">
+                      Experience
+                    </p>
+
+                    <div className="flex flex-col gap-2">
+                      {EXPERIENCE_BUCKETS.map((bucket) => {
+                        const active = draftExperience.includes(bucket.label);
+
+                        return (
+                          <button
+                            key={bucket.label}
+                            onClick={() => {
+                              setDraftExperience((prev) =>
+                                prev.includes(bucket.label)
+                                  ? prev.filter((l) => l !== bucket.label)
+                                  : [...prev, bucket.label],
+                              );
+                            }}
+                            className={`flex items-center justify-between px-3 py-2 rounded-lg border text-sm ${
+                              active
+                                ? "bg-blue-50 border-blue-500 text-blue-700"
+                                : "border-gray-200 text-gray-600"
+                            }`}
+                          >
+                            {bucket.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="mt-auto pt-4 border-t flex gap-2">
+                    <button
+                      onClick={() => {
+                        setDraftLocations([]);
+                        setDraftExperience([]);
+                      }}
+                      className="flex-1 border border-gray-200 rounded-lg py-2 text-sm"
+                    >
+                      Clear
+                    </button>
+
+                    {/* Apply */}
+                    <button
+                      onClick={() => {
+                        setAppliedLocations(draftLocations);
+                        setAppliedExperience(draftExperience);
+                        setFiltersOpen(false);
+                      }}
+                      className="flex-1 bg-blue-600 text-white rounded-lg py-2 text-sm"
+                    >
+                      Apply
+                    </button>
+                  </div>
+                </div>
+              </Drawer>
+
+              <div
+                className="grid gap-4"
+                style={{
                   gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
                 }}
               >
                 {visibleResults.map((card) => (
                   <TalentCardItem key={card.id} card={card} />
                 ))}
-              </Box>
-            </Box>
+              </div>
+            </div>
           )}
-        </Box>
-      </Box>
-    </Box>
+        </div>
+      </div>
+    </div>
   );
 }

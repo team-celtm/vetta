@@ -19,10 +19,12 @@ export interface TalentCard {
   email?: string;
   phone?: string;
   linkedin?: string;
+
 }
 
 export function TalentCardItem({ card }: { card: TalentCard }) {
   const [selected, setSelected] = useState<TalentCard | null>(null);
+  const [selectedExperience, setSelectedExperience] = useState<string[]>([]);
   return (
     <Box
       sx={{
