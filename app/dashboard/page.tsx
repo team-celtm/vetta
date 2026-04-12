@@ -97,6 +97,7 @@ function LeftPanelContent({
   isLoading,
   error,
   onClose,
+  onReplaceJD,
   matchThreshold,
   onThresholdChange,
   candidateCount,
@@ -108,6 +109,7 @@ function LeftPanelContent({
   isLoading: boolean;
   error: string | null;
   onClose?: () => void;
+  onReplaceJD: () => void; // ← NEW prop type
   matchThreshold: number;
   onThresholdChange: (val: number) => void;
   candidateCount: number;
@@ -123,7 +125,6 @@ function LeftPanelContent({
     if (!title.trim()) setTitle(file.name.replace(/\.[^/.]+$/, ""));
   };
 
-  // Mock inferred skills from JD
   const inferredSkills = jd?.inferred_skills ?? [];
   const hasInferredSkills = inferredSkills.length > 0;
   const isActive = jd?.status === "active";
@@ -193,7 +194,7 @@ function LeftPanelContent({
         </div>
       </div>
 
-      {/* JD File card (shown when JD loaded) */}
+      {/* ── JD File card (shown when JD loaded) ── */}
       {jd && (
         <div className="mx-4 mb-3">
           <div className="flex items-center gap-3 p-3 rounded-xl border-2 border-emerald-400 bg-emerald-50">
@@ -212,7 +213,7 @@ function LeftPanelContent({
                 />
               </svg>
             </div>
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               <p className="text-[13px] font-semibold text-gray-900 truncate">
                 {jd.title}
               </p>
@@ -220,9 +221,33 @@ function LeftPanelContent({
                 JD_SeniorPM_Q4.pdf · 3.2 KB
               </p>
             </div>
+
+            {/* ── NEW: Replace / upload-another button ── */}
+            <button
+              onClick={onReplaceJD}
+              title="Upload a different job description"
+              className="flex-shrink-0 flex items-center gap-1 text-[11px] font-semibold text-emerald-700 hover:text-red-500 transition-colors px-2 py-1 rounded-lg hover:bg-red-50"
+            >
+              <svg
+                className="w-3.5 h-3.5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                />
+              </svg>
+              Replace
+            </button>
           </div>
         </div>
       )}
+
+      {/* ── Upload / Paste form (shown only when no JD loaded) ── */}
       {!jd && (
         <div className="px-4 pb-3">
           {/* Tabs */}
@@ -363,7 +388,7 @@ function LeftPanelContent({
       )}
 
       {/* Technical Skills Detected */}
-      {(isActive || hasInferredSkills || jd) && (
+      {isActive && hasInferredSkills && (
         <div className="px-4 pb-4">
           <div className="flex items-center gap-1.5 mb-2.5">
             <svg
@@ -396,7 +421,7 @@ function LeftPanelContent({
         </div>
       )}
 
-      {jd && (
+      {isActive && (
         <div className="px-4 pb-4">
           <div className="flex items-center gap-1.5 mb-3">
             <span className="text-[13px]">🎯</span>
@@ -504,7 +529,6 @@ function StatsBar({
 }) {
   return (
     <div className="flex items-center gap-6 px-6 py-3 bg-white border-b border-gray-100">
-      {/* Matched */}
       <div className="flex items-center gap-2.5">
         <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center">
           <svg
@@ -531,7 +555,6 @@ function StatsBar({
 
       <div className="w-px h-8 bg-gray-100" />
 
-      {/* 90%+ match */}
       <div className="flex items-center gap-2.5">
         <div className="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center">
           <svg
@@ -558,7 +581,6 @@ function StatsBar({
 
       <div className="w-px h-8 bg-gray-100" />
 
-      {/* Avg match */}
       <div className="flex items-center gap-2.5">
         <div className="w-8 h-8 rounded-full bg-yellow-50 flex items-center justify-center">
           <svg
@@ -585,7 +607,6 @@ function StatsBar({
 
       <div className="w-px h-8 bg-gray-100" />
 
-      {/* Compute time */}
       <div className="flex items-center gap-2.5">
         <div className="w-8 h-8 rounded-full bg-sky-50 flex items-center justify-center">
           <svg
@@ -636,13 +657,16 @@ export default function DashboardPage() {
 
   const [appliedLocations, setAppliedLocations] = useState<string[]>([]);
   const [appliedExperience, setAppliedExperience] = useState<string[]>([]);
-  // Availability state
-const [draftAvailability, setDraftAvailability] = useState<string[]>([]);
-const [appliedAvailability, setAppliedAvailability] = useState<string[]>([]);
+
+  const [draftAvailability, setDraftAvailability] = useState<string[]>([]);
+  const [appliedAvailability, setAppliedAvailability] = useState<string[]>([]);
+  const computeStartRef = useRef<number | null>(null);
+  const [computeTime, setComputeTime] = useState("—");
+  computeStartRef.current = Date.now(); // ← add this line
 
   const AVAILABILITY_OPTIONS = [
     { value: "available-now", label: "Available Now", color: "#22C55E" },
-    { value: "open-to-offers", label: "Open to Offers", color: "#3B82F6" },
+    { value: "open", label: "Open to Offers", color: "#3B82F6" },
     {
       value: "available-2weeks",
       label: "Available in 2 weeks",
@@ -654,14 +678,29 @@ const [appliedAvailability, setAppliedAvailability] = useState<string[]>([]);
       color: "#EF4444",
     },
   ];
+
   const EXPERIENCE_BUCKETS = [
     { label: "0-2 yrs", min: 0, max: 2 },
     { label: "3-5 yrs", min: 3, max: 5 },
     { label: "6-10 yrs", min: 6, max: 10 },
     { label: "10+ yrs", min: 11, max: 50 },
   ];
+
   function getYears(exp: string) {
     return parseInt(exp);
+  }
+
+  // ── Reset / clear current JD so user can upload a new one ──
+  function resetJD() {
+    setJd(null);
+    setAllResults([]);
+    setError(null);
+    if (pollingRef.current) {
+      clearInterval(pollingRef.current);
+      pollingRef.current = null;
+    }
+    computeStartRef.current = null;
+    setComputeTime("—");
   }
 
   useEffect(() => {
@@ -671,7 +710,7 @@ const [appliedAvailability, setAppliedAvailability] = useState<string[]>([]);
     }
   }, [filtersOpen, appliedLocations, appliedExperience]);
 
-const visibleResults = allResults.filter((r) => {
+  const visibleResults = allResults.filter((r) => {
     const matchesSearch =
       r.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       r.role.toLowerCase().includes(searchQuery.toLowerCase());
@@ -689,11 +728,16 @@ const visibleResults = allResults.filter((r) => {
         return years >= bucket.min && years <= bucket.max;
       });
 
-  const matchesAvailability =
-  appliedAvailability.length === 0 ||
-  appliedAvailability.includes(r.availability ?? "");
+    const matchesAvailability =
+      appliedAvailability.length === 0 ||
+      appliedAvailability.includes(r.availability ?? "");
 
-    return matchesSearch && matchesLocation && matchesExperience && matchesAvailability;
+    return (
+      matchesSearch &&
+      matchesLocation &&
+      matchesExperience &&
+      matchesAvailability
+    );
   });
 
   const loadMatches = useCallback(async (jdId: string) => {
@@ -709,6 +753,13 @@ const visibleResults = allResults.filter((r) => {
       }
       const data = await res.json();
       setAllResults(data.results ?? []);
+      if (computeStartRef.current) {
+        const elapsed = ((Date.now() - computeStartRef.current) / 1000).toFixed(
+          1,
+        );
+        setComputeTime(`${elapsed}s`);
+        computeStartRef.current = null;
+      }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Unknown error";
       setError(message);
@@ -762,6 +813,7 @@ const visibleResults = allResults.filter((r) => {
     setIsLoading(true);
     setError(null);
     setAllResults([]);
+    computeStartRef.current = Date.now();
     try {
       const { jd_id } = await uploadJDFile(orgId, file, title);
       localStorage.setItem("vetta_last_jd_id", jd_id);
@@ -787,6 +839,7 @@ const visibleResults = allResults.filter((r) => {
     setIsLoading(true);
     setError(null);
     setAllResults([]);
+    computeStartRef.current = Date.now();
     setJd(null);
     try {
       const { jd_id } = await pasteJDText(orgId, title, rawText);
@@ -810,9 +863,7 @@ const visibleResults = allResults.filter((r) => {
   const isInferring = jd?.status === "inferring";
   const hasResults = visibleResults.length > 0;
 
-  // Derive stats from results
   const matched = allResults.length;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const topMatch = allResults.filter(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (r: any) => (r.matchScore ?? 0) >= 90,
@@ -827,7 +878,6 @@ const visibleResults = allResults.filter((r) => {
           ) / matched,
         )
       : 87;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
 
   const leftPanel = (
     <LeftPanelContent
@@ -837,12 +887,14 @@ const visibleResults = allResults.filter((r) => {
       isLoading={isLoading}
       error={error}
       onClose={isMobile ? () => setLeftDrawerOpen(false) : undefined}
+      onReplaceJD={resetJD} // ← wired up here
       matchThreshold={matchThreshold}
       onThresholdChange={setMatchThreshold}
       candidateCount={matched}
       onRefreshMatches={() => jd && loadMatches(jd.id)}
     />
   );
+
   const locationCounts = allResults.reduce(
     (acc: Record<string, number>, curr) => {
       acc[curr.location] = (acc[curr.location] || 0) + 1;
@@ -960,32 +1012,31 @@ const visibleResults = allResults.filter((r) => {
             {/* Filters */}
             <button
               onClick={() => setFiltersOpen(true)}
-              className=" cursor-pointer hidden sm:flex items-center gap-1.5 h-9 px-3.5 border border-gray-200 rounded-lg text-[12px] font-semibold text-gray-600 hover:border-blue-500 hover:text-blue-600 transition-colors"
+              className="cursor-pointer hidden sm:flex items-center gap-1.5 h-9 px-3.5 border border-gray-200 rounded-lg text-[12px] font-semibold text-gray-600 hover:border-blue-500 hover:text-blue-600 transition-colors"
             >
               Filters
             </button>
 
             {/* Vetted count */}
-            <div className="flex items-center gap-2 h-9 px-3.5 border border-gray-200 rounded-lg">
+            {/* <div className="flex items-center gap-2 h-9 px-3.5 border border-gray-200 rounded-lg">
               <span className="w-2 h-2 rounded-full bg-emerald-500" />
               <span className="text-[12px] font-semibold text-gray-700 whitespace-nowrap">
                 1,240 vetted
               </span>
-            </div>
+            </div> */}
           </div>
         </div>
 
         {/* Stats bar */}
         <StatsBar
-          matched={matched || 5}
+          matched={matched || 0}
           topMatch={topMatch || 0}
-          avgMatch={avgMatch}
-          computeTime="2.1s"
+          avgMatch={avgMatch || 0}
+          computeTime={computeTime}
         />
 
         {/* Content area */}
         <div className="flex-1 overflow-auto p-6 bg-[#F5F2EC]">
-          {/* Inferring */}
           {isInferring && (
             <div className="text-center mt-20">
               <CircularProgress />
@@ -995,7 +1046,6 @@ const visibleResults = allResults.filter((r) => {
             </div>
           )}
 
-          {/* Empty state */}
           {!isInferring && !hasResults && !error && (
             <div className="text-center mt-20 opacity-50">
               <svg
@@ -1017,14 +1067,12 @@ const visibleResults = allResults.filter((r) => {
             </div>
           )}
 
-          {/* Error */}
           {error && !isInferring && (
             <div className="text-center mt-20 p-6 bg-red-50 border border-red-200 rounded-xl max-w-md mx-auto">
               <p className="text-red-600 font-semibold">{error}</p>
             </div>
           )}
 
-          {/* Results */}
           {!isInferring && hasResults && (
             <div>
               <div className="flex items-center justify-between mb-4">
@@ -1038,22 +1086,6 @@ const visibleResults = allResults.filter((r) => {
                       : `Found ${allResults.length} vetted candidates for "${jd?.title}"`}
                   </p>
                 </div>
-                <button className="hidden sm:flex items-center gap-1.5 h-8 px-3 border border-gray-200 bg-white rounded-lg text-[12px] font-semibold text-gray-600 hover:border-blue-500 hover:text-blue-600 transition-colors">
-                  <svg
-                    className="w-3.5 h-3.5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4 6h16M4 12h10m-10 6h7"
-                    />
-                  </svg>
-                  Sort by Match
-                </button>
               </div>
 
               <Drawer
@@ -1069,7 +1101,6 @@ const visibleResults = allResults.filter((r) => {
                 }}
               >
                 <div className="flex flex-col h-full bg-white">
-                  {/* Header */}
                   <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
                     <div className="flex items-center gap-2.5">
                       <div className="w-7 h-7 bg-[#1a1a2e] rounded-md flex items-center justify-center">
@@ -1125,7 +1156,6 @@ const visibleResults = allResults.filter((r) => {
                     </button>
                   </div>
 
-                  {/* Scrollable body */}
                   <div className="flex-1 overflow-y-auto px-5 py-5 space-y-6">
                     {/* LOCATION */}
                     <div>
@@ -1151,9 +1181,8 @@ const visibleResults = allResults.filter((r) => {
                                   : "bg-white border-gray-200 hover:border-gray-300"
                               }`}
                             >
-                              {/* Checkbox */}
                               <div
-                                className={`w-[18px] h-[18px] rounded-[5px] border-[1.5px] flex items-center justify-center shrink-0 transition-all ${
+                                className={`w-4.5 h-4.5 rounded-[5px] border-[1.5px] flex items-center justify-center shrink-0 transition-all ${
                                   active
                                     ? "bg-blue-600 border-blue-600"
                                     : "border-slate-300 bg-white"
@@ -1238,7 +1267,6 @@ const visibleResults = allResults.filter((r) => {
                           Availability
                         </p>
                       </div>
-
                       <div className="flex flex-col gap-1.5">
                         {AVAILABILITY_OPTIONS.map(({ value, label, color }) => {
                           const active = draftAvailability.includes(value);
@@ -1254,8 +1282,6 @@ const visibleResults = allResults.filter((r) => {
                               <span className="flex-1 text-sm text-gray-700">
                                 {label}
                               </span>
-
-                              {/* Toggle switch */}
                               <button
                                 role="switch"
                                 aria-checked={active}
@@ -1335,7 +1361,6 @@ const visibleResults = allResults.filter((r) => {
                         setAppliedLocations(draftLocations);
                         setAppliedExperience(draftExperience);
                         setAppliedAvailability(draftAvailability);
-
                         setFiltersOpen(false);
                       }}
                       className="cursor-pointer flex-[1.6] py-3 rounded-[10px] bg-[#1E3A8A] text-white text-sm font-semibold hover:bg-blue-900 transition"

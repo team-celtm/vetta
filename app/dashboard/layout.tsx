@@ -34,7 +34,7 @@ const NAV_ITEMS = [
   { icon: <SearchIcon fontSize="small" />, label: 'Smart Match', href: '/dashboard' },
   { icon: <PeopleIcon fontSize="small" />, label: 'Talent Pipeline', href: '/dashboard/talentpipeline' },
   { icon: <BarChartIcon fontSize="small" />, label: 'Analytics', href: '/dashboard/analytics' },
-  { icon: <StorageIcon fontSize="small" />, label: 'Talent Pool', href: '/dashboard/talentpool' },
+  // { icon: <StorageIcon fontSize="small" />, label: 'Talent Pool', href: '/dashboard/talentpool' },
   { icon: <TuneIcon fontSize="small" />, label: 'Settings', href: '/dashboard/settings' },
 ];
 
