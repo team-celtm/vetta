@@ -12,7 +12,9 @@ import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
 import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
 import EmailOutlinedIcon from "@mui/icons-material/EmailOutlined";
 import { useEffect, useRef } from "react";
-
+import Snackbar from "@mui/material/Snackbar";
+import Alert from "@mui/material/Alert";
+import { useState } from "react";
 
 export interface SkillScore {
   name: string;
@@ -53,7 +55,6 @@ export interface CandidateDetail {
   workHistory?: WorkHistory[];
   personalityScores?: Record<string, number>;
 }
-
 
 function getStableValue(str: string): number {
   let hash = 0;
@@ -207,7 +208,12 @@ function SkillBar({
         </Typography>
       </Box>
       <Box
-        sx={{ height: 6, borderRadius: 3, bgcolor: "#E5E7EB", overflow: "hidden" }}
+        sx={{
+          height: 6,
+          borderRadius: 3,
+          bgcolor: "#E5E7EB",
+          overflow: "hidden",
+        }}
       >
         <Box
           sx={{
@@ -252,23 +258,74 @@ export function TalentProfileModal({
   candidate,
   open,
   onClose,
+  orgId,
+  jdId,
 }: {
   candidate: CandidateDetail | null;
   open: boolean;
   onClose: () => void;
+  orgId: string;
+  jdId: string;
 }) {
+  const [snackbar, setSnackbar] = useState<{
+    open: boolean;
+    message: string;
+    severity: "success" | "error";
+  }>({ open: false, message: "", severity: "success" });
+
+  const [scheduling, setScheduling] = useState(false);
+
   if (!candidate) return null;
+
+  async function handleScheduleInterview() {
+    if (!candidate) return;
+    setScheduling(true);
+    try {
+      const res = await fetch(
+        `/api/orgs/${orgId}/job-descriptions/${jdId}/pipeline`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            candidateId: candidate.id,
+            stage: "interview",
+          }),
+        },
+      );
+
+      if (res.ok) {
+        setSnackbar({
+          open: true,
+          message: `Interview scheduled with ${candidate.name} ✓`,
+          severity: "success",
+        });
+      } else {
+        const data = await res.json();
+        setSnackbar({
+          open: true,
+          message: data.error ?? "Failed to schedule interview.",
+          severity: "error",
+        });
+      }
+    } catch {
+      setSnackbar({
+        open: true,
+        message: "Network error. Please try again.",
+        severity: "error",
+      });
+    } finally {
+      setScheduling(false);
+    }
+  }
 
   const initials = candidate.name
     .split(" ")
     .map((n) => n[0])
     .join("");
 
-  const resolvedSkills: SkillScore[] =
-    candidate.skillScores?.length
-      ? candidate.skillScores
-      : candidate.skills.map((name) => ({ name, score: getStableValue(name) }));
-
+  const resolvedSkills: SkillScore[] = candidate.skillScores?.length
+    ? candidate.skillScores
+    : candidate.skills.map((name) => ({ name, score: getStableValue(name) }));
 
   const radarSkills = resolvedSkills.slice(0, 6);
   const radarAxes: RadarAxis[] = radarSkills.map((s, i) => ({
@@ -293,7 +350,12 @@ export function TalentProfileModal({
       }}
     >
       <DialogContent
-        sx={{ p: 0, display: "flex", flexDirection: "column", overflow: "hidden" }}
+        sx={{
+          p: 0,
+          display: "flex",
+          flexDirection: "column",
+          overflow: "hidden",
+        }}
       >
         {/* ── Header ── */}
         <Box
@@ -314,7 +376,8 @@ export function TalentProfileModal({
                 width: 56,
                 height: 56,
                 borderRadius: "14px",
-                background: "linear-gradient(135deg, #6366F1, #8B5CF6, #EC4899)",
+                background:
+                  "linear-gradient(135deg, #6366F1, #8B5CF6, #EC4899)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -329,14 +392,26 @@ export function TalentProfileModal({
 
             <Box>
               <Typography
-                sx={{ fontWeight: 800, fontSize: 20, color: "#111827", lineHeight: 1.2 }}
+                sx={{
+                  fontWeight: 800,
+                  fontSize: 20,
+                  color: "#111827",
+                  lineHeight: 1.2,
+                }}
               >
                 {candidate.name}
               </Typography>
               <Typography sx={{ fontSize: 13, color: "#6B7280", mb: 0.5 }}>
                 {candidate.role}
               </Typography>
-              <Box sx={{ display: "flex", gap: 1.5, alignItems: "center", flexWrap: "wrap" }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  gap: 1.5,
+                  alignItems: "center",
+                  flexWrap: "wrap",
+                }}
+              >
                 <Typography sx={{ fontSize: 12, color: "#6B7280" }}>
                   📍 {candidate.location}
                 </Typography>
@@ -441,7 +516,10 @@ export function TalentProfileModal({
                   Strong Points
                 </Typography>
                 {candidate.strongPoints.map((pt, i) => (
-                  <Typography key={i} sx={{ fontSize: 12, color: "#374151", mb: 0.75 }}>
+                  <Typography
+                    key={i}
+                    sx={{ fontSize: 12, color: "#374151", mb: 0.75 }}
+                  >
                     → {pt}
                   </Typography>
                 ))}
@@ -478,7 +556,9 @@ export function TalentProfileModal({
                   >
                     <Typography sx={{ fontSize: 16 }}>🎓</Typography>
                     <Box>
-                      <Typography sx={{ fontSize: 12, fontWeight: 600, color: "#111827" }}>
+                      <Typography
+                        sx={{ fontSize: 12, fontWeight: 600, color: "#111827" }}
+                      >
                         {cert.name}
                       </Typography>
                       <Typography sx={{ fontSize: 11, color: "#6B7280" }}>
@@ -532,11 +612,22 @@ export function TalentProfileModal({
                   {candidate.workHistory.map((w, i) => (
                     <Box
                       key={i}
-                      sx={{ display: "flex", gap: 2, mb: 2, alignItems: "flex-start" }}
+                      sx={{
+                        display: "flex",
+                        gap: 2,
+                        mb: 2,
+                        alignItems: "flex-start",
+                      }}
                     >
                       <CompanyIcon letter={w.company?.[0] ?? "?"} />
                       <Box>
-                        <Typography sx={{ fontWeight: 600, fontSize: 14, color: "#111827" }}>
+                        <Typography
+                          sx={{
+                            fontWeight: 600,
+                            fontSize: 14,
+                            color: "#111827",
+                          }}
+                        >
                           {w.title}
                         </Typography>
                         <Typography sx={{ fontSize: 12, color: "#6B7280" }}>
@@ -565,7 +656,9 @@ export function TalentProfileModal({
             >
               Contact Details
             </Typography>
-            <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1.5 }}>
+            <Box
+              sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1.5 }}
+            >
               {[
                 { label: "Email", value: candidate.email },
                 { label: "Phone", value: candidate.phone },
@@ -583,17 +676,27 @@ export function TalentProfileModal({
                     }}
                   >
                     <Typography
-                      sx={{ fontSize: 10, color: "#9CA3AF", mb: 0.3, fontWeight: 500 }}
+                      sx={{
+                        fontSize: 10,
+                        color: "#9CA3AF",
+                        mb: 0.3,
+                        fontWeight: 500,
+                      }}
                     >
                       {label}
                     </Typography>
                     <Typography
-                      sx={{ fontSize: 13, color: "#111827", fontWeight: 500, wordBreak: "break-all" }}
+                      sx={{
+                        fontSize: 13,
+                        color: "#111827",
+                        fontWeight: 500,
+                        wordBreak: "break-all",
+                      }}
                     >
                       {value}
                     </Typography>
                   </Box>
-                ) : null
+                ) : null,
               )}
             </Box>
           </Box>
@@ -630,6 +733,8 @@ export function TalentProfileModal({
           <Button
             variant="outlined"
             startIcon={<CalendarMonthOutlinedIcon />}
+            disabled={scheduling}
+            onClick={handleScheduleInterview} // ← wire it up
             sx={{
               flex: 1,
               textTransform: "none",
@@ -641,7 +746,7 @@ export function TalentProfileModal({
               "&:hover": { borderColor: "#D1D5DB", bgcolor: "#F9FAFB" },
             }}
           >
-            Schedule Interview
+            {scheduling ? "Scheduling…" : "Schedule Interview"}
           </Button>
           <Button
             variant="contained"
@@ -661,6 +766,21 @@ export function TalentProfileModal({
           </Button>
         </Box>
       </DialogContent>
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={() => setSnackbar((s) => ({ ...s, open: false }))}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert
+          onClose={() => setSnackbar((s) => ({ ...s, open: false }))}
+          severity={snackbar.severity}
+          variant="filled"
+          sx={{ borderRadius: "10px", fontWeight: 500 }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Dialog>
   );
 }

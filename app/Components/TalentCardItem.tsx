@@ -20,21 +20,29 @@ export interface TalentCard {
   email?: string;
   phone?: string;
   linkedin?: string;
-  availability?: string; 
+  availability?: string;
 }
-
 
 function mapToCandidateDetail(card: TalentCard): CandidateDetail {
   return {
     ...card,
     city: card.location,
-    availability: card.availability ?? "Not specified", 
+    availability: card.availability ?? "Not specified",
   };
 }
 
-export function TalentCardItem({ card }: { card: TalentCard }) {
+export function TalentCardItem({
+  card,
+  orgId,
+  jdId,
+}: {
+  card: TalentCard;
+  orgId: string;
+  jdId: string;
+}) {
   const [modalOpen, setModalOpen] = useState(false);
-  const [candidateDetail, setCandidateDetail] = useState<CandidateDetail | null>(null);
+  const [candidateDetail, setCandidateDetail] =
+    useState<CandidateDetail | null>(null);
   const [loading, setLoading] = useState(false);
 
   async function handleViewProfile() {
@@ -45,7 +53,6 @@ export function TalentCardItem({ card }: { card: TalentCard }) {
       if (res.ok) {
         const data: CandidateDetail = await res.json();
 
-       
         setCandidateDetail({
           ...data,
           availability: data.availability ?? "Not specified",
@@ -93,7 +100,8 @@ export function TalentCardItem({ card }: { card: TalentCard }) {
                 width: 42,
                 height: 42,
                 borderRadius: "12px",
-                background: "linear-gradient(135deg, #F59E0B, #F97316, #FB7185)",
+                background:
+                  "linear-gradient(135deg, #F59E0B, #F97316, #FB7185)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -133,7 +141,6 @@ export function TalentCardItem({ card }: { card: TalentCard }) {
           </Box>
         </Box>
 
-       
         <Box sx={{ display: "flex", gap: 1, mb: 1 }}>
           {["B2B", "API", "OKRs", "Comm", "Sales"].map((_, i) => {
             const colors = [
@@ -146,7 +153,12 @@ export function TalentCardItem({ card }: { card: TalentCard }) {
             return (
               <Box
                 key={i}
-                sx={{ flex: 1, height: 10, borderRadius: 2, bgcolor: colors[i] }}
+                sx={{
+                  flex: 1,
+                  height: 10,
+                  borderRadius: 2,
+                  bgcolor: colors[i],
+                }}
               />
             );
           })}
@@ -228,6 +240,8 @@ export function TalentCardItem({ card }: { card: TalentCard }) {
         candidate={candidateDetail}
         open={modalOpen}
         onClose={() => setModalOpen(false)}
+        orgId={orgId} // ← pass through
+        jdId={jdId}
       />
     </>
   );

@@ -129,6 +129,8 @@ function LeftPanelContent({
   const hasInferredSkills = inferredSkills.length > 0;
   const isActive = jd?.status === "active";
   const isInferring = jd?.status === "inferring";
+ 
+
 
   const mockSkills = [
     "Product Strategy",
@@ -863,6 +865,12 @@ export default function DashboardPage() {
   const isInferring = jd?.status === "inferring";
   const hasResults = visibleResults.length > 0;
 
+
+// ← ADD THESE TWO LINES
+const orgId = getOrgId();
+const jdId = jd?.id ?? "";
+
+
   const matched = allResults.length;
   const topMatch = allResults.filter(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -877,7 +885,7 @@ export default function DashboardPage() {
             0,
           ) / matched,
         )
-      : 87;
+      : 0;
 
   const leftPanel = (
     <LeftPanelContent
@@ -1378,7 +1386,12 @@ export default function DashboardPage() {
                 }}
               >
                 {visibleResults.map((card) => (
-                  <TalentCardItem key={card.id} card={card} />
+                  <TalentCardItem
+                    key={card.id}
+                    card={card}
+                    orgId={orgId}
+                    jdId={jdId}
+                  />
                 ))}
               </div>
             </div>
