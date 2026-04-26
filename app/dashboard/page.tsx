@@ -129,8 +129,6 @@ function LeftPanelContent({
   const hasInferredSkills = inferredSkills.length > 0;
   const isActive = jd?.status === "active";
   const isInferring = jd?.status === "inferring";
- 
-
 
   const mockSkills = [
     "Product Strategy",
@@ -477,23 +475,23 @@ function LeftPanelContent({
           </div>
           <input
             type="range"
-            min={40}
-            max={95}
+            min={20}
+            max={90}
             value={matchThreshold}
             onChange={(e) => onThresholdChange(Number(e.target.value))}
             className="w-full h-1.5 rounded-full appearance-none cursor-pointer"
             style={{
-              background: `linear-gradient(to right, #2563EB ${((matchThreshold - 40) / 55) * 100}%, #E5E7EB ${((matchThreshold - 40) / 55) * 100}%)`,
+              background: `linear-gradient(to right, #2563EB ${((matchThreshold - 20) / 70) * 100}%, #E5E7EB ${((matchThreshold - 20) / 70) * 100}%)`,
             }}
           />
           <div className="flex justify-between mt-1">
-            <span className="text-[10px] text-gray-400">Broader (40%)</span>
-            <span className="text-[10px] text-gray-400">Precise (95%)</span>
+            <span className="text-[10px] text-gray-400">Broader 20(%)</span>
+            <span className="text-[10px] text-gray-400">Broader 90(%)</span>
           </div>
 
           <button
             onClick={onRefreshMatches}
-            className="mt-3 w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-[13px] font-bold rounded-xl h-10 transition-colors"
+            className=" cursor-pointer mt-3 w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-[13px] font-bold rounded-xl h-10 transition-colors"
           >
             <svg
               className="w-4 h-4"
@@ -645,7 +643,7 @@ export default function DashboardPage() {
   const [allResults, setAllResults] = useState<TalentCard[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [leftDrawerOpen, setLeftDrawerOpen] = useState(false);
-  const [matchThreshold, setMatchThreshold] = useState(75);
+  const [matchThreshold, setMatchThreshold] = useState(30);
 
   const [jd, setJd] = useState<JDStatus | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -734,11 +732,14 @@ export default function DashboardPage() {
       appliedAvailability.length === 0 ||
       appliedAvailability.includes(r.availability ?? "");
 
+    const matchesThreshold = (r.match ?? 0) >= matchThreshold;
+
     return (
       matchesSearch &&
       matchesLocation &&
       matchesExperience &&
-      matchesAvailability
+      matchesAvailability &&
+      matchesThreshold
     );
   });
 
@@ -865,11 +866,9 @@ export default function DashboardPage() {
   const isInferring = jd?.status === "inferring";
   const hasResults = visibleResults.length > 0;
 
-
-// ← ADD THESE TWO LINES
-const orgId = getOrgId();
-const jdId = jd?.id ?? "";
-
+  // ← ADD THESE TWO LINES
+  const orgId = getOrgId();
+  const jdId = jd?.id ?? "";
 
   const matched = allResults.length;
   const topMatch = allResults.filter(
@@ -898,8 +897,9 @@ const jdId = jd?.id ?? "";
       onReplaceJD={resetJD} // ← wired up here
       matchThreshold={matchThreshold}
       onThresholdChange={setMatchThreshold}
-      candidateCount={matched}
-      onRefreshMatches={() => jd && loadMatches(jd.id)}
+      candidateCount={visibleResults.length}
+      onRefreshMatches={() => { if (jd) { setMatchThreshold(30); loadMatches(jd.id); } }}
+
     />
   );
 
