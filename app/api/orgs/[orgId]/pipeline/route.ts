@@ -28,7 +28,7 @@ export async function GET(
     }
 
     const { searchParams } = new URL(req.url);
-    const stage = searchParams.get("stage") ?? "interview"; // default to interview
+    const stage = searchParams.get("stage") ?? "interview"; 
 
     const rows = await query<{
       entry_id: string;

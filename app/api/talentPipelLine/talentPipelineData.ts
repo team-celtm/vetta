@@ -1,7 +1,7 @@
 // app/api/talentPipelLine/talentPipelineData.ts
 
 export type Stage =
-  | "sourced"
+  // | "sourced"
   | "screening"
   | "interview"
   | "offer_sent"
@@ -42,7 +42,7 @@ export const pipelineStats = [
 ];
 
 export const columns: PipelineColumn[] = [
-  { id: "sourced",    label: "Sourced",    subtitle: "From match engine", badgeColor: "bg-gray-700 text-white"   },
+  // { id: "sourced",    label: "Sourced",    subtitle: "From match engine", badgeColor: "bg-gray-700 text-white"   },
   { id: "screening",  label: "Screening",  subtitle: "Initial review",    badgeColor: "bg-orange-400 text-white" },
   { id: "interview",  label: "Interviews", subtitle: "Active interviews", badgeColor: "bg-orange-400 text-white" },
   { id: "offer_sent", label: "Offer Sent", subtitle: "Awaiting response", badgeColor: "bg-orange-400 text-white" },

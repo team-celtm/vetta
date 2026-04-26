@@ -734,7 +734,7 @@ export function TalentProfileModal({
             variant="outlined"
             startIcon={<CalendarMonthOutlinedIcon />}
             disabled={scheduling}
-            onClick={handleScheduleInterview} // ← wire it up
+            onClick={handleScheduleInterview} 
             sx={{
               flex: 1,
               textTransform: "none",

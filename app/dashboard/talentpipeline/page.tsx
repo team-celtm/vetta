@@ -181,7 +181,7 @@ const TalentPipelinePage: React.FC = () => {
     setError(null);
 
     try {
-      const stages: Stage[] = ["sourced", "screening", "interview", "offer_sent", "hired"];
+      const stages: Stage[] = [ "screening", "interview", "offer_sent", "hired"];
       const responses = await Promise.all(
         stages.map((stage) =>
           fetch(`/api/orgs/${orgId}/pipeline?stage=${stage}`).then((r) =>
@@ -213,7 +213,7 @@ const TalentPipelinePage: React.FC = () => {
          
           <button
             onClick={fetchAllStages}
-            className="text-xs sm:text-sm bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700 transition"
+            className=" cursor-pointer text-xs sm:text-sm bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700 transition"
           >
             ↻ Refresh
           </button>

@@ -43,7 +43,7 @@ export async function PATCH(
     }
 
     const validStages = [
-      "sourced",
+      // "sourced",
       "screening",
       "interview",
       "offer",
