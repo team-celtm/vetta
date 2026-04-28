@@ -274,8 +274,50 @@ export function TalentProfileModal({
   }>({ open: false, message: "", severity: "success" });
 
   const [scheduling, setScheduling] = useState(false);
+  const [shortlisting, setShortlisting] = useState(false);
 
   if (!candidate) return null;
+
+  async function handleShortlist() {
+    if (!candidate) return;
+    setShortlisting(true);
+    try {
+      const res = await fetch(
+        `/api/orgs/${orgId}/job-descriptions/${jdId}/pipeline`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            candidateId: candidate.id,
+            stage: "screening",
+          }),
+        },
+      );
+
+      if (res.ok) {
+        setSnackbar({
+          open: true,
+          message: `${candidate.name} has been shortlisted ✓`,
+          severity: "success",
+        });
+      } else {
+        const data = await res.json();
+        setSnackbar({
+          open: true,
+          message: data.error ?? "Failed to shortlist candidate.",
+          severity: "error",
+        });
+      }
+    } catch {
+      setSnackbar({
+        open: true,
+        message: "Network error. Please try again.",
+        severity: "error",
+      });
+    } finally {
+      setShortlisting(false);
+    }
+  }
 
   async function handleScheduleInterview() {
     if (!candidate) return;
@@ -717,6 +759,8 @@ export function TalentProfileModal({
           <Button
             variant="outlined"
             startIcon={<BookmarkBorderIcon />}
+            disabled={shortlisting} // ← add
+            onClick={handleShortlist} // ← add
             sx={{
               flex: 1,
               textTransform: "none",
@@ -728,13 +772,14 @@ export function TalentProfileModal({
               "&:hover": { borderColor: "#D1D5DB", bgcolor: "#F9FAFB" },
             }}
           >
-            Shortlist
+            {shortlisting ? "Shortlisting…" : "Shortlist"}{" "}
+            
           </Button>
           <Button
             variant="outlined"
             startIcon={<CalendarMonthOutlinedIcon />}
             disabled={scheduling}
-            onClick={handleScheduleInterview} 
+            onClick={handleScheduleInterview}
             sx={{
               flex: 1,
               textTransform: "none",

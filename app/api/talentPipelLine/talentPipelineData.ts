@@ -25,6 +25,7 @@ export interface Candidate {
   priority?: number;
   notes?: string;
   availability?: string;
+  jdId?: string;
 }
 
 export interface PipelineColumn {

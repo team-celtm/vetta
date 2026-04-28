@@ -8,6 +8,10 @@ import {
   pipelineStats,
   type Stage,
 } from "@/app/api/talentPipelLine/talentPipelineData";
+import {
+  CandidateDetail,
+  TalentProfileModal,
+} from "@/app/Components/Talentprofilemodal";
 
 function getOrgId(): string {
   if (typeof document === "undefined") return "";
@@ -23,18 +27,36 @@ const IconPerson = () => (
   </svg>
 );
 const IconCheck = () => (
-  <svg viewBox="0 0 24 24" fill="none" className="w-4 h-4" stroke="currentColor" strokeWidth={2.5}>
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    className="w-4 h-4"
+    stroke="currentColor"
+    strokeWidth={2.5}
+  >
     <path d="M20 6L9 17l-5-5" />
   </svg>
 );
 const IconCalendar = () => (
-  <svg viewBox="0 0 24 24" fill="none" className="w-4 h-4" stroke="currentColor" strokeWidth={2}>
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    className="w-4 h-4"
+    stroke="currentColor"
+    strokeWidth={2}
+  >
     <rect x="3" y="4" width="18" height="18" rx="2" />
     <path d="M16 2v4M8 2v4M3 10h18" />
   </svg>
 );
 const IconPencil = () => (
-  <svg viewBox="0 0 24 24" fill="none" className="w-4 h-4" stroke="currentColor" strokeWidth={2}>
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    className="w-4 h-4"
+    stroke="currentColor"
+    strokeWidth={2}
+  >
     <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
     <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
   </svg>
@@ -57,51 +79,138 @@ const scoreClass = (c: Candidate["scoreColor"]) =>
   c === "green"
     ? "text-green-500"
     : c === "orange"
-    ? "text-orange-400"
-    : "text-yellow-500";
+      ? "text-orange-400"
+      : "text-yellow-500";
 
 // ── Candidate Card ─────────────────────────────────────────────────────────
 const CandidateCard: React.FC<{ candidate: Candidate }> = ({ candidate }) => {
-  const { initials, avatarColor, name, role, matchScore, scoreColor, tags, location, experience, meta } = candidate;
+  const {
+    initials,
+    avatarColor,
+    name,
+    role,
+    matchScore,
+    scoreColor,
+    tags,
+    location,
+    experience,
+    meta,
+  } = candidate;
+
+  const [modalOpen, setModalOpen] = useState(false);
+  const [candidateDetail, setCandidateDetail] =
+    useState<CandidateDetail | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  async function handleViewProfile() {
+    setLoading(true);
+     console.log("candidate object:", candidate); 
+    try {
+      
+      const res = await fetch(`/api/candidates/${candidate.candidateId ?? candidate.id}`);
+      if (res.ok) {
+        const data: CandidateDetail = await res.json();
+        setCandidateDetail({
+          ...data,
+          availability: data.availability ?? "Not specified",
+        });
+      } else {
+        // fallback only if API fails
+        setCandidateDetail({
+          id: candidate.id,
+          name,
+          role,
+          match: matchScore,
+          skills: tags,
+          skillScores: tags.map((t) => ({ name: t, score: 80 })), 
+          location,
+          experience: experience ?? "",
+          available: true,
+          city: location,
+          availability: "Not specified",
+        });
+      }
+    } catch {
+      setCandidateDetail({
+        id: candidate.id,
+        name,
+        role,
+        match: matchScore,
+        skills: tags,
+        skillScores: tags.map((t) => ({ name: t, score: 80 })),
+        location,
+        experience: experience ?? "",
+        available: true,
+        city: location,
+        availability: "Not specified",
+      });
+    } finally {
+      setLoading(false);
+      setModalOpen(true);
+    }
+  }
 
   return (
-    <div className="bg-white rounded-xl p-3 sm:p-4 shadow-sm border border-gray-100 hover:shadow-md transition">
-      <div className="flex justify-between">
-        <div className="flex gap-2">
-          <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl ${avatarColor} flex items-center justify-center text-white text-xs font-bold`}>
-            {initials}
+    <>
+      <div className="bg-white rounded-xl p-3 sm:p-4 shadow-sm border border-gray-100 hover:shadow-md transition">
+        <div className="flex justify-between">
+          <div className="flex gap-2">
+            <div
+              className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl ${avatarColor} flex items-center justify-center text-white text-xs font-bold`}
+            >
+              {initials}
+            </div>
+            <div>
+              <p className="text-sm font-semibold">{name}</p>
+              <p className="text-xs text-gray-400">{role}</p>
+            </div>
           </div>
-          <div>
-            <p className="text-sm font-semibold">{name}</p>
-            <p className="text-xs text-gray-400">{role}</p>
-          </div>
-        </div>
-        <span className={`text-sm font-bold ${scoreClass(scoreColor)}`}>
-          {matchScore}%
-        </span>
-      </div>
-
-      {tags.length > 0 && (
-        <div className="flex flex-wrap gap-1 mt-2">
-          {tags.map((t) => (
-            <span key={t} className="text-[10px] sm:text-[11px] bg-gray-100 px-2 py-0.5 rounded">
-              {t}
-            </span>
-          ))}
-        </div>
-      )}
-
-      <div className="flex flex-wrap items-center gap-1 mt-2 text-[10px] sm:text-[11px] text-gray-400">
-        <IconPin />
-        <span>{location}</span>
-        {experience && <span>· {experience}</span>}
-        {meta && (
-          <span className="ml-auto text-[10px] text-blue-400 font-medium truncate max-w-[120px]">
-            {meta}
+          <span className={`text-sm font-bold ${scoreClass(scoreColor)}`}>
+            {matchScore}%
           </span>
+        </div>
+
+        {tags.length > 0 && (
+          <div className="flex flex-wrap gap-1 mt-2">
+            {tags.map((t) => (
+              <span
+                key={t}
+                className="text-[10px] sm:text-[11px] bg-gray-100 px-2 py-0.5 rounded"
+              >
+                {t}
+              </span>
+            ))}
+          </div>
         )}
+
+        <div className="flex flex-wrap items-center gap-1 mt-2 text-[10px] sm:text-[11px] text-gray-400">
+          <IconPin />
+          <span>{location}</span>
+          {experience && <span>· {experience}</span>}
+          {meta && (
+            <span className="ml-auto text-[10px] text-blue-400 font-medium truncate max-w-[120px]">
+              {meta}
+            </span>
+          )}
+        </div>
+        <div className="mt-3 flex justify-end">
+          <button
+            onClick={handleViewProfile}
+            disabled={loading}
+            className="cursor-pointer text-xs bg-gray-100 hover:bg-gray-200 text-gray-800 px-3 py-1.5 rounded-lg transition disabled:opacity-50"
+          >
+            {loading ? "Loading..." : "View Profile"}
+          </button>
+        </div>
+        <TalentProfileModal
+          candidate={candidateDetail}
+          open={modalOpen}
+          onClose={() => setModalOpen(false)}
+          orgId={getOrgId()}
+          jdId={candidate.jdId ?? ""}
+        />
       </div>
-    </div>
+    </>
   );
 };
 
@@ -135,7 +244,9 @@ const PipelineCol: React.FC<{
     <div className="snap-start w-[85%] sm:w-65 shrink-0">
       <div className="mb-3">
         <div className="flex items-center gap-2">
-          <span className={`w-5 h-5 text-[11px] flex items-center justify-center rounded-full ${col.badgeColor}`}>
+          <span
+            className={`w-5 h-5 text-[11px] flex items-center justify-center rounded-full ${col.badgeColor}`}
+          >
             {loading ? "…" : cards.length}
           </span>
           <h3 className="font-bold text-sm sm:text-base">{col.label}</h3>
@@ -165,12 +276,17 @@ const TalentPipelinePage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-
   const stats = [
     { ...pipelineStats[0], value: String(candidates.length) },
-    { ...pipelineStats[1], value: String(candidates.filter((c) => c.stage === "offer_sent").length) },
-    { ...pipelineStats[2], value: String(candidates.filter((c) => c.stage === "interview").length) },
-    { ...pipelineStats[3] }, 
+    {
+      ...pipelineStats[1],
+      value: String(candidates.filter((c) => c.stage === "offer_sent").length),
+    },
+    {
+      ...pipelineStats[2],
+      value: String(candidates.filter((c) => c.stage === "interview").length),
+    },
+    { ...pipelineStats[3] },
   ];
 
   const fetchAllStages = useCallback(async () => {
@@ -181,7 +297,7 @@ const TalentPipelinePage: React.FC = () => {
     setError(null);
 
     try {
-      const stages: Stage[] = [ "screening", "interview", "offer_sent", "hired"];
+      const stages: Stage[] = ["screening", "interview", "offer_sent", "hired"];
       const responses = await Promise.all(
         stages.map((stage) =>
           fetch(`/api/orgs/${orgId}/pipeline?stage=${stage}`).then((r) =>
@@ -205,12 +321,10 @@ const TalentPipelinePage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#F5F4F0]">
-
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-4 sm:px-8 py-4 bg-white border-b">
         <h1 className="text-lg sm:text-xl font-black">Talent Pipeline</h1>
         <div className="flex gap-2">
-         
           <button
             onClick={fetchAllStages}
             className=" cursor-pointer text-xs sm:text-sm bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700 transition"
@@ -226,14 +340,22 @@ const TalentPipelinePage: React.FC = () => {
           const Icon = statIconMap[s.icon];
           return (
             <div key={s.label} className="flex items-center gap-2">
-              <div className={`w-8 h-8 flex items-center justify-center rounded ${s.color}`}>
+              <div
+                className={`w-8 h-8 flex items-center justify-center rounded ${s.color}`}
+              >
                 <Icon />
               </div>
               <div>
                 <p className="font-bold text-sm sm:text-lg">
-                  {loading ? <span className="inline-block w-6 h-4 bg-gray-200 rounded animate-pulse" /> : s.value}
+                  {loading ? (
+                    <span className="inline-block w-6 h-4 bg-gray-200 rounded animate-pulse" />
+                  ) : (
+                    s.value
+                  )}
                 </p>
-                <p className="text-[10px] sm:text-xs text-gray-400">{s.label}</p>
+                <p className="text-[10px] sm:text-xs text-gray-400">
+                  {s.label}
+                </p>
               </div>
             </div>
           );
