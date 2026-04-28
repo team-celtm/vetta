@@ -104,10 +104,11 @@ const CandidateCard: React.FC<{ candidate: Candidate }> = ({ candidate }) => {
 
   async function handleViewProfile() {
     setLoading(true);
-     console.log("candidate object:", candidate); 
+    console.log("candidate object:", candidate);
     try {
-      
-      const res = await fetch(`/api/candidates/${candidate.candidateId ?? candidate.id}`);
+      const res = await fetch(
+        `/api/candidates/${candidate.candidateId ?? candidate.id}`,
+      );
       if (res.ok) {
         const data: CandidateDetail = await res.json();
         setCandidateDetail({
@@ -122,7 +123,7 @@ const CandidateCard: React.FC<{ candidate: Candidate }> = ({ candidate }) => {
           role,
           match: matchScore,
           skills: tags,
-          skillScores: tags.map((t) => ({ name: t, score: 80 })), 
+          skillScores: tags.map((t) => ({ name: t, score: 80 })),
           location,
           experience: experience ?? "",
           available: true,
@@ -208,6 +209,7 @@ const CandidateCard: React.FC<{ candidate: Candidate }> = ({ candidate }) => {
           onClose={() => setModalOpen(false)}
           orgId={getOrgId()}
           jdId={candidate.jdId ?? ""}
+          context="pipeline"
         />
       </div>
     </>

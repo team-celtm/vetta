@@ -260,12 +260,14 @@ export function TalentProfileModal({
   onClose,
   orgId,
   jdId,
+  context = "dashboard",
 }: {
   candidate: CandidateDetail | null;
   open: boolean;
   onClose: () => void;
   orgId: string;
   jdId: string;
+  context?: "dashboard" | "pipeline";
 }) {
   const [snackbar, setSnackbar] = useState<{
     open: boolean;
@@ -745,6 +747,7 @@ export function TalentProfileModal({
         </Box>
 
         {/* ── Footer ── */}
+        {/* ── Footer ── */}
         <Box
           sx={{
             px: 3,
@@ -756,59 +759,69 @@ export function TalentProfileModal({
             flexShrink: 0,
           }}
         >
-          <Button
-            variant="outlined"
-            startIcon={<BookmarkBorderIcon />}
-            disabled={shortlisting} // ← add
-            onClick={handleShortlist} // ← add
-            sx={{
-              flex: 1,
-              textTransform: "none",
-              borderRadius: "10px",
-              borderColor: "#E5E7EB",
-              color: "#374151",
-              fontWeight: 600,
-              fontSize: 13,
-              "&:hover": { borderColor: "#D1D5DB", bgcolor: "#F9FAFB" },
-            }}
-          >
-            {shortlisting ? "Shortlisting…" : "Shortlist"}{" "}
-            
-          </Button>
-          <Button
-            variant="outlined"
-            startIcon={<CalendarMonthOutlinedIcon />}
-            disabled={scheduling}
-            onClick={handleScheduleInterview}
-            sx={{
-              flex: 1,
-              textTransform: "none",
-              borderRadius: "10px",
-              borderColor: "#E5E7EB",
-              color: "#374151",
-              fontWeight: 600,
-              fontSize: 13,
-              "&:hover": { borderColor: "#D1D5DB", bgcolor: "#F9FAFB" },
-            }}
-          >
-            {scheduling ? "Scheduling…" : "Schedule Interview"}
-          </Button>
-          <Button
-            variant="contained"
-            startIcon={<EmailOutlinedIcon />}
-            sx={{
-              flex: 1.5,
-              textTransform: "none",
-              borderRadius: "10px",
-              bgcolor: "#2563EB",
-              fontWeight: 600,
-              fontSize: 13,
-              boxShadow: "none",
-              "&:hover": { bgcolor: "#1D4ED8", boxShadow: "none" },
-            }}
-          >
-            Send Outreach
-          </Button>
+          {/* Shortlist — always shown, but only on dashboard */}
+          {context === "dashboard" && (
+            <Button
+              variant="outlined"
+              startIcon={<BookmarkBorderIcon />}
+              disabled={shortlisting}
+              onClick={handleShortlist}
+              sx={{
+                flex: 1,
+                textTransform: "none",
+                borderRadius: "10px",
+                borderColor: "#E5E7EB",
+                color: "#374151",
+                fontWeight: 600,
+                fontSize: 13,
+                "&:hover": { borderColor: "#D1D5DB", bgcolor: "#F9FAFB" },
+              }}
+            >
+              {shortlisting ? "Shortlisting…" : "Shortlist"}
+            </Button>
+          )}
+
+          {/* Schedule Interview — only in pipeline */}
+          {context === "pipeline" && (
+            <Button
+              variant="outlined"
+              startIcon={<CalendarMonthOutlinedIcon />}
+              disabled={scheduling}
+              onClick={handleScheduleInterview}
+              sx={{
+                flex: 1,
+                textTransform: "none",
+                borderRadius: "10px",
+                borderColor: "#E5E7EB",
+                color: "#374151",
+                fontWeight: 600,
+                fontSize: 13,
+                "&:hover": { borderColor: "#D1D5DB", bgcolor: "#F9FAFB" },
+              }}
+            >
+              {scheduling ? "Scheduling…" : "Schedule Interview"}
+            </Button>
+          )}
+
+          {/* Send Outreach — only in pipeline */}
+          {context === "pipeline" && (
+            <Button
+              variant="contained"
+              startIcon={<EmailOutlinedIcon />}
+              sx={{
+                flex: 1.5,
+                textTransform: "none",
+                borderRadius: "10px",
+                bgcolor: "#2563EB",
+                fontWeight: 600,
+                fontSize: 13,
+                boxShadow: "none",
+                "&:hover": { bgcolor: "#1D4ED8", boxShadow: "none" },
+              }}
+            >
+              Send Outreach
+            </Button>
+          )}
         </Box>
       </DialogContent>
       <Snackbar
