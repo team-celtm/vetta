@@ -127,6 +127,7 @@ export async function GET(
         priority: row.priority,
         notes: row.notes ?? undefined,
         availability: row.availability ?? undefined,
+        jdId: row.jd_id, 
       };
     });
 

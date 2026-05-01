@@ -208,7 +208,7 @@ const CandidateCard: React.FC<{ candidate: Candidate }> = ({ candidate }) => {
           open={modalOpen}
           onClose={() => setModalOpen(false)}
           orgId={getOrgId()}
-          jdId={candidate.jdId ?? ""}
+          jdId={candidate.jdId ?? ""} 
           context="pipeline"
         />
       </div>
@@ -307,6 +307,8 @@ const TalentPipelinePage: React.FC = () => {
           ),
         ),
       );
+      console.log("Pipeline response sample:", responses[0]?.results?.[0]);
+
 
       const all: Candidate[] = responses.flatMap((r) => r.results ?? []);
       setCandidates(all);

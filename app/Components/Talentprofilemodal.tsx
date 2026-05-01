@@ -323,6 +323,10 @@ export function TalentProfileModal({
 
   async function handleScheduleInterview() {
     if (!candidate) return;
+     if (!jdId) {
+    setSnackbar({ open: true, message: "Missing job description ID.", severity: "error" });
+    return;
+  }
     setScheduling(true);
     try {
       const res = await fetch(
@@ -630,11 +634,7 @@ export function TalentProfileModal({
               Skill Radar
             </Typography>
             <Box sx={{ display: "flex", justifyContent: "center", mb: 3 }}>
-              {/*
-                axes  = skill names as radar labels (up to 6)
-                scores = the actual score values in the same order
-                Both come from resolvedSkills — single source of truth.
-              */}
+             
               <RadarChart axes={radarAxes} scores={radarScores} />
             </Box>
 
