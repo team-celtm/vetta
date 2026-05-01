@@ -14,6 +14,12 @@ import {
   IconButton,
   useMediaQuery,
   useTheme,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+  Button,
 } from '@mui/material';
 import {
   Search as SearchIcon,
@@ -43,6 +49,7 @@ const NAV_ITEMS = [
 function SidebarContent({ onClose }: { onClose?: () => void }) {
   const router = useRouter();
   const pathname = usePathname();
+  const [openLogoutDialog, setOpenLogoutDialog] = useState(false);
 
   const handleNav = (href: string) => {
     router.push(href);
@@ -132,24 +139,24 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
       <Divider sx={{ width: 36, borderColor: 'rgba(255,255,255,0.1)', mb: 1.5 }} />
 
       {/* Logout */}
-      <Tooltip title="Logout" placement="right" arrow>
-        <ListItemButton
-          onClick={handleLogout}
-          sx={{
-            width: 40,
-            height: 40,
-            borderRadius: '8px',
-            justifyContent: 'center',
-            px: 0,
-            mb: 1.5,
-            '&:hover': { backgroundColor: 'rgba(255,80,80,0.15)' },
-          }}
-        >
-          <ListItemIcon sx={{ minWidth: 0, color: 'rgba(255,255,255,0.35)' }}>
-            <LogoutIcon sx={{ fontSize: 18 }} />
-          </ListItemIcon>
-        </ListItemButton>
-      </Tooltip>
+    <Tooltip title="Logout" placement="right" arrow>
+  <ListItemButton
+    onClick={() => setOpenLogoutDialog(true)}
+    sx={{
+      width: 40,
+      height: 40,
+      borderRadius: '8px',
+      justifyContent: 'center',
+      px: 0,
+      mb: 1.5,
+      '&:hover': { backgroundColor: 'rgba(255,80,80,0.15)' },
+    }}
+  >
+    <ListItemIcon sx={{ minWidth: 0, color: 'rgba(255,255,255,0.35)' }}>
+      <LogoutIcon sx={{ fontSize: 18 }} />
+    </ListItemIcon>
+  </ListItemButton>
+</Tooltip>
 
       {/* User Avatar */}
       <Tooltip title="Your profile" placement="right" arrow>
@@ -167,6 +174,35 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
           SA
         </Avatar>
       </Tooltip>
+      <Dialog
+  open={openLogoutDialog}
+  onClose={() => setOpenLogoutDialog(false)}
+>
+  <DialogTitle>Confirm Logout</DialogTitle>
+
+  <DialogContent>
+    <DialogContentText>
+      Are you sure you want to log out?
+    </DialogContentText>
+  </DialogContent>
+
+  <DialogActions>
+    <Button onClick={() => setOpenLogoutDialog(false)}>
+      Cancel
+    </Button>
+
+    <Button
+      onClick={() => {
+        setOpenLogoutDialog(false);
+        handleLogout();
+      }}
+      color="error"
+      variant="contained"
+    >
+      Logout
+    </Button>
+  </DialogActions>
+</Dialog>
     </Box>
   );
 }
