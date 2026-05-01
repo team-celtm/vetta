@@ -34,7 +34,10 @@ import { getInitials } from "@/utils/getInitialName";
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const SIDEBAR_WIDTH = 64;
-
+type User = {
+  full_name: string;
+ 
+};
 const NAV_ITEMS = [
   {
     icon: <SearchIcon fontSize="small" />,
@@ -65,13 +68,22 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
   const router = useRouter();
   const pathname = usePathname();
   const [openLogoutDialog, setOpenLogoutDialog] = useState(false);
-  const [user, setUser] = useState(() => {
-    if (typeof window !== "undefined") {
+
+const [user, setUser] = useState<User | null>(null);
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    const handleUser = () => {
       const storedUser = localStorage.getItem("user");
-      return storedUser ? JSON.parse(storedUser) : null;
-    }
-    return null;
-  });
+
+      if (storedUser) {
+        setUser(JSON.parse(storedUser));
+      }
+
+      setIsLoaded(true);
+    };
+    handleUser();
+  }, []);
 
   const handleNav = (href: string) => {
     router.push(href);
@@ -206,7 +218,7 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
             border: "2px solid rgba(26,53,232,0.4)",
           }}
         >
-          {getInitials(user?.full_name)}
+          <Avatar>{isLoaded && user ? getInitials(user.full_name) : ""}</Avatar>
         </Avatar>
       </Tooltip>
       <Dialog
