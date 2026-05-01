@@ -1,7 +1,7 @@
 //app/dashboard/layout.tsx
-"use client"
-import { ReactNode, useState } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
+"use client";
+import { ReactNode, useEffect, useState } from "react";
+import { useRouter, usePathname } from "next/navigation";
 import {
   Box,
   Drawer,
@@ -20,28 +20,43 @@ import {
   DialogContentText,
   DialogActions,
   Button,
-} from '@mui/material';
+} from "@mui/material";
 import {
   Search as SearchIcon,
   People as PeopleIcon,
   BarChart as BarChartIcon,
-
   TuneOutlined as TuneIcon,
   Logout as LogoutIcon,
   Menu as MenuIcon,
-
-} from '@mui/icons-material';
+} from "@mui/icons-material";
+import { getInitials } from "@/utils/getInitialName";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const SIDEBAR_WIDTH = 64;
 
 const NAV_ITEMS = [
-  { icon: <SearchIcon fontSize="small" />, label: 'Smart Match', href: '/dashboard' },
-  { icon: <PeopleIcon fontSize="small" />, label: 'Talent Pipeline', href: '/dashboard/talentpipeline' },
-  { icon: <BarChartIcon fontSize="small" />, label: 'Analytics', href: '/dashboard/analytics' },
+  {
+    icon: <SearchIcon fontSize="small" />,
+    label: "Smart Match",
+    href: "/dashboard",
+  },
+  {
+    icon: <PeopleIcon fontSize="small" />,
+    label: "Talent Pipeline",
+    href: "/dashboard/talentpipeline",
+  },
+  {
+    icon: <BarChartIcon fontSize="small" />,
+    label: "Analytics",
+    href: "/dashboard/analytics",
+  },
   // { icon: <StorageIcon fontSize="small" />, label: 'Talent Pool', href: '/dashboard/talentpool' },
-  { icon: <TuneIcon fontSize="small" />, label: 'Settings', href: '/dashboard/settings' },
+  {
+    icon: <TuneIcon fontSize="small" />,
+    label: "Settings",
+    href: "/dashboard/settings",
+  },
 ];
 
 // ─── Sidebar Content ──────────────────────────────────────────────────────────
@@ -50,6 +65,13 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
   const router = useRouter();
   const pathname = usePathname();
   const [openLogoutDialog, setOpenLogoutDialog] = useState(false);
+  const [user, setUser] = useState(() => {
+    if (typeof window !== "undefined") {
+      const storedUser = localStorage.getItem("user");
+      return storedUser ? JSON.parse(storedUser) : null;
+    }
+    return null;
+  });
 
   const handleNav = (href: string) => {
     router.push(href);
@@ -57,7 +79,7 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
   };
 
   const handleLogout = () => {
-    router.push('/login');
+    router.push("/login");
     onClose?.();
   };
 
@@ -65,13 +87,13 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
     <Box
       sx={{
         width: SIDEBAR_WIDTH,
-        height: '100%',
-        backgroundColor: '#0F1117',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
+        height: "100%",
+        backgroundColor: "#0F1117",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
         py: 2,
-        overflowX: 'hidden',
+        overflowX: "hidden",
       }}
     >
       {/* Logo */}
@@ -79,26 +101,35 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
         sx={{
           width: 36,
           height: 36,
-          borderRadius: '8px',
-          backgroundColor: '#1A35E8',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
+          borderRadius: "8px",
+          backgroundColor: "#1A35E8",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
           mb: 3,
-          cursor: 'pointer',
+          cursor: "pointer",
           fontWeight: 800,
           fontSize: 14,
-          color: '#fff',
-          letterSpacing: '-0.5px',
+          color: "#fff",
+          letterSpacing: "-0.5px",
           flexShrink: 0,
         }}
-        onClick={() => handleNav('/dashboard')}
+        onClick={() => handleNav("/dashboard")}
       >
         V
       </Box>
 
       {/* Nav Items */}
-      <List disablePadding sx={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 0.5, px: 1 }}>
+      <List
+        disablePadding
+        sx={{
+          width: "100%",
+          display: "flex",
+          flexDirection: "column",
+          gap: 0.5,
+          px: 1,
+        }}
+      >
         {NAV_ITEMS.map((item) => {
           const isActive = pathname === item.href;
           return (
@@ -107,23 +138,25 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
                 onClick={() => handleNav(item.href)}
                 sx={{
                   minHeight: 40,
-                  borderRadius: '8px',
-                  justifyContent: 'center',
+                  borderRadius: "8px",
+                  justifyContent: "center",
                   px: 0,
-                  backgroundColor: isActive ? 'rgba(26, 53, 232, 0.25)' : 'transparent',
-                  '&:hover': {
+                  backgroundColor: isActive
+                    ? "rgba(26, 53, 232, 0.25)"
+                    : "transparent",
+                  "&:hover": {
                     backgroundColor: isActive
-                      ? 'rgba(26, 53, 232, 0.35)'
-                      : 'rgba(255,255,255,0.07)',
+                      ? "rgba(26, 53, 232, 0.35)"
+                      : "rgba(255,255,255,0.07)",
                   },
-                  transition: 'background-color 0.15s ease',
+                  transition: "background-color 0.15s ease",
                 }}
               >
                 <ListItemIcon
                   sx={{
                     minWidth: 0,
-                    color: isActive ? '#1A35E8' : 'rgba(255,255,255,0.45)',
-                    '& svg': { fontSize: 20 },
+                    color: isActive ? "#1A35E8" : "rgba(255,255,255,0.45)",
+                    "& svg": { fontSize: 20 },
                   }}
                 >
                   {item.icon}
@@ -136,27 +169,29 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
 
       <Box sx={{ flexGrow: 1 }} />
 
-      <Divider sx={{ width: 36, borderColor: 'rgba(255,255,255,0.1)', mb: 1.5 }} />
+      <Divider
+        sx={{ width: 36, borderColor: "rgba(255,255,255,0.1)", mb: 1.5 }}
+      />
 
       {/* Logout */}
-    <Tooltip title="Logout" placement="right" arrow>
-  <ListItemButton
-    onClick={() => setOpenLogoutDialog(true)}
-    sx={{
-      width: 40,
-      height: 40,
-      borderRadius: '8px',
-      justifyContent: 'center',
-      px: 0,
-      mb: 1.5,
-      '&:hover': { backgroundColor: 'rgba(255,80,80,0.15)' },
-    }}
-  >
-    <ListItemIcon sx={{ minWidth: 0, color: 'rgba(255,255,255,0.35)' }}>
-      <LogoutIcon sx={{ fontSize: 18 }} />
-    </ListItemIcon>
-  </ListItemButton>
-</Tooltip>
+      <Tooltip title="Logout" placement="right" arrow>
+        <ListItemButton
+          onClick={() => setOpenLogoutDialog(true)}
+          sx={{
+            width: 40,
+            height: 40,
+            borderRadius: "8px",
+            justifyContent: "center",
+            px: 0,
+            mb: 1.5,
+            "&:hover": { backgroundColor: "rgba(255,80,80,0.15)" },
+          }}
+        >
+          <ListItemIcon sx={{ minWidth: 0, color: "rgba(255,255,255,0.35)" }}>
+            <LogoutIcon sx={{ fontSize: 18 }} />
+          </ListItemIcon>
+        </ListItemButton>
+      </Tooltip>
 
       {/* User Avatar */}
       <Tooltip title="Your profile" placement="right" arrow>
@@ -164,45 +199,43 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
           sx={{
             width: 34,
             height: 34,
-            bgcolor: '#1A35E8',
+            bgcolor: "#1A35E8",
             fontSize: 13,
             fontWeight: 700,
-            cursor: 'pointer',
-            border: '2px solid rgba(26,53,232,0.4)',
+            cursor: "pointer",
+            border: "2px solid rgba(26,53,232,0.4)",
           }}
         >
-          SA
+          {getInitials(user?.full_name)}
         </Avatar>
       </Tooltip>
       <Dialog
-  open={openLogoutDialog}
-  onClose={() => setOpenLogoutDialog(false)}
->
-  <DialogTitle>Confirm Logout</DialogTitle>
+        open={openLogoutDialog}
+        onClose={() => setOpenLogoutDialog(false)}
+      >
+        <DialogTitle>Confirm Logout</DialogTitle>
 
-  <DialogContent>
-    <DialogContentText>
-      Are you sure you want to log out?
-    </DialogContentText>
-  </DialogContent>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to log out?
+          </DialogContentText>
+        </DialogContent>
 
-  <DialogActions>
-    <Button onClick={() => setOpenLogoutDialog(false)}>
-      Cancel
-    </Button>
+        <DialogActions>
+          <Button onClick={() => setOpenLogoutDialog(false)}>Cancel</Button>
 
-    <Button
-      onClick={() => {
-        setOpenLogoutDialog(false);
-        handleLogout();
-      }}
-      color="error"
-      variant="contained"
-    >
-      Logout
-    </Button>
-  </DialogActions>
-</Dialog>
+          <Button
+            onClick={() => {
+              setOpenLogoutDialog(false);
+              handleLogout();
+            }}
+            color="error"
+            variant="contained"
+          >
+            Logout
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }
@@ -211,12 +244,18 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
-    <Box sx={{ display: 'flex', height: '100vh', overflow: 'hidden', bgcolor: '#F5F2EC' }}>
-
+    <Box
+      sx={{
+        display: "flex",
+        height: "100vh",
+        overflow: "hidden",
+        bgcolor: "#F5F2EC",
+      }}
+    >
       {/* ── Desktop permanent sidebar ── */}
       {!isMobile && (
         <Drawer
@@ -224,10 +263,10 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           sx={{
             width: SIDEBAR_WIDTH,
             flexShrink: 0,
-            '& .MuiDrawer-paper': {
+            "& .MuiDrawer-paper": {
               width: SIDEBAR_WIDTH,
-              boxSizing: 'border-box',
-              border: 'none',
+              boxSizing: "border-box",
+              border: "none",
               p: 0,
             },
           }}
@@ -244,10 +283,10 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           onClose={() => setMobileOpen(false)}
           ModalProps={{ keepMounted: true }}
           sx={{
-            '& .MuiDrawer-paper': {
+            "& .MuiDrawer-paper": {
               width: SIDEBAR_WIDTH,
-              boxSizing: 'border-box',
-              border: 'none',
+              boxSizing: "border-box",
+              border: "none",
               p: 0,
             },
           }}
@@ -261,9 +300,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         component="main"
         sx={{
           flexGrow: 1,
-          overflow: 'auto',
-          display: 'flex',
-          flexDirection: 'column',
+          overflow: "auto",
+          display: "flex",
+          flexDirection: "column",
           minWidth: 0,
         }}
       >
@@ -271,20 +310,20 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         {isMobile && (
           <Box
             sx={{
-              display: 'flex',
-              alignItems: 'center',
+              display: "flex",
+              alignItems: "center",
               gap: 1.5,
               px: 2,
               py: 1.25,
-              bgcolor: '#0F1117',
-              borderBottom: '1px solid rgba(255,255,255,0.08)',
+              bgcolor: "#0F1117",
+              borderBottom: "1px solid rgba(255,255,255,0.08)",
               flexShrink: 0,
             }}
           >
             <IconButton
               onClick={() => setMobileOpen(true)}
               size="small"
-              sx={{ color: 'rgba(255,255,255,0.7)', p: 0.5 }}
+              sx={{ color: "rgba(255,255,255,0.7)", p: 0.5 }}
             >
               <MenuIcon fontSize="small" />
             </IconButton>
@@ -292,14 +331,14 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
               sx={{
                 width: 28,
                 height: 28,
-                borderRadius: '6px',
-                backgroundColor: '#1A35E8',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
+                borderRadius: "6px",
+                backgroundColor: "#1A35E8",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
                 fontWeight: 800,
                 fontSize: 13,
-                color: '#fff',
+                color: "#fff",
               }}
             >
               V

@@ -51,6 +51,7 @@ const LoginPage = () => {
         }
 
         // Success — redirect to dashboard
+        localStorage.setItem("user", JSON.stringify(data.user));
         router.push('/dashboard');
 
       } catch {
