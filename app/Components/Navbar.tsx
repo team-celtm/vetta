@@ -12,10 +12,10 @@ const Navbar: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center gap-2">
-            <div className="bg-blue-600 text-white font-bold w-8 h-8 flex items-center justify-center rounded-md">
+            <div className="bg-blue-600 text-white w-8 h-8 flex items-center justify-center rounded-md font-extrabold">
               V
             </div>
-            <span className="text-xl font-semibold tracking-wide">VETTA</span>
+            <span className="text-xl font-extrabold tracking-wide">VETTA</span>
           </div>
 
           <div className="hidden md:flex items-center gap-8 text-gray-600 font-medium">

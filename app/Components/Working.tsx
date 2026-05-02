@@ -63,9 +63,7 @@ const Working = () => {
         {/* Heading */}
         <h2
           className="text-white font-black text-5xl md:text-6xl leading-[1.05] mb-6 max-w-lg"
-          style={{
-            fontFamily: "'Arial Black', 'Arial Bold', Arial, sans-serif",
-          }}
+         
         >
           From JD to shortlist in four steps
         </h2>
