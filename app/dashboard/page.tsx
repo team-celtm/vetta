@@ -703,12 +703,13 @@ export default function DashboardPage() {
     setComputeTime("—");
   }
 
-  useEffect(() => {
-    if (filtersOpen) {
-      setDraftLocations(appliedLocations);
-      setDraftExperience(appliedExperience);
-    }
-  }, [filtersOpen, appliedLocations, appliedExperience]);
+useEffect(() => {
+  if (filtersOpen) {
+    setDraftLocations(appliedLocations);
+    setDraftExperience(appliedExperience);
+    setDraftAvailability(appliedAvailability); 
+  }
+}, [filtersOpen, appliedLocations, appliedExperience, appliedAvailability]);
 
   const visibleResults = allResults.filter((r) => {
     const matchesSearch =
@@ -1025,13 +1026,7 @@ export default function DashboardPage() {
               Filters
             </button>
 
-            {/* Vetted count */}
-            {/* <div className="flex items-center gap-2 h-9 px-3.5 border border-gray-200 rounded-lg">
-              <span className="w-2 h-2 rounded-full bg-emerald-500" />
-              <span className="text-[12px] font-semibold text-gray-700 whitespace-nowrap">
-                1,240 vetted
-              </span>
-            </div> */}
+        
           </div>
         </div>
 
@@ -1096,6 +1091,26 @@ export default function DashboardPage() {
                 </div>
               </div>
 
+
+              <div
+                className="grid gap-4"
+                style={{
+                  gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+                }}
+              >
+                {visibleResults.map((card) => (
+                  <TalentCardItem
+                    key={card.id}
+                    card={card}
+                    orgId={orgId}
+                    jdId={jdId}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+        
               <Drawer
                 anchor="right"
                 open={filtersOpen}
@@ -1378,25 +1393,6 @@ export default function DashboardPage() {
                   </div>
                 </div>
               </Drawer>
-
-              <div
-                className="grid gap-4"
-                style={{
-                  gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-                }}
-              >
-                {visibleResults.map((card) => (
-                  <TalentCardItem
-                    key={card.id}
-                    card={card}
-                    orgId={orgId}
-                    jdId={jdId}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
       </div>
     </div>
   );
