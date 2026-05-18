@@ -15,6 +15,8 @@ import { useEffect, useRef } from "react";
 import Snackbar from "@mui/material/Snackbar";
 import Alert from "@mui/material/Alert";
 import { useState } from "react";
+import { ScheduleInterviewModal } from "./Scheduleinterviewmodal";
+
 
 export interface SkillScore {
   name: string;
@@ -277,6 +279,7 @@ export function TalentProfileModal({
 
   const [scheduling, setScheduling] = useState(false);
   const [shortlisting, setShortlisting] = useState(false);
+  const [scheduleOpen, setScheduleOpen] = useState(false); // ← CHANGE
 
   if (!candidate) return null;
 
@@ -323,10 +326,14 @@ export function TalentProfileModal({
 
   async function handleScheduleInterview() {
     if (!candidate) return;
-     if (!jdId) {
-    setSnackbar({ open: true, message: "Missing job description ID.", severity: "error" });
-    return;
-  }
+    if (!jdId) {
+      setSnackbar({
+        open: true,
+        message: "Missing job description ID.",
+        severity: "error",
+      });
+      return;
+    }
     setScheduling(true);
     try {
       const res = await fetch(
@@ -634,7 +641,6 @@ export function TalentProfileModal({
               Skill Radar
             </Typography>
             <Box sx={{ display: "flex", justifyContent: "center", mb: 3 }}>
-             
               <RadarChart axes={radarAxes} scores={radarScores} />
             </Box>
 
@@ -786,8 +792,7 @@ export function TalentProfileModal({
             <Button
               variant="outlined"
               startIcon={<CalendarMonthOutlinedIcon />}
-              disabled={scheduling}
-              onClick={handleScheduleInterview}
+              onClick={() => setScheduleOpen(true)} // ← CHANGE
               sx={{
                 flex: 1,
                 textTransform: "none",
@@ -799,7 +804,7 @@ export function TalentProfileModal({
                 "&:hover": { borderColor: "#D1D5DB", bgcolor: "#F9FAFB" },
               }}
             >
-              {scheduling ? "Scheduling…" : "Schedule Interview"}
+              Schedule Interview
             </Button>
           )}
 
@@ -839,6 +844,26 @@ export function TalentProfileModal({
           {snackbar.message}
         </Alert>
       </Snackbar>
+      <ScheduleInterviewModal  // ← CHANGE
+  open={scheduleOpen}
+  onClose={() => setScheduleOpen(false)}
+  candidate={{
+    id: candidate.id,
+    name: candidate.name,
+    role: candidate.role,
+    experience: candidate.experience,
+    location: candidate.location,
+    email: candidate.email,
+    phone: candidate.phone,
+  }}
+  orgId={orgId}
+  jdId={jdId}
+  // Optionally pass your real interviewer list:
+  // availableInterviewers={[
+  //   { id: "sr", name: "Shreya R.", initials: "SR", color: "#6366F1" },
+  //   { id: "am", name: "Anil M.",   initials: "AM", color: "#0EA5E9" },
+  // ]}
+/>
     </Dialog>
   );
 }
