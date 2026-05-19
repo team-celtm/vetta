@@ -17,7 +17,6 @@ import Alert from "@mui/material/Alert";
 import { useState } from "react";
 import { ScheduleInterviewModal } from "./Scheduleinterviewmodal";
 
-
 export interface SkillScore {
   name: string;
   score: number;
@@ -263,6 +262,7 @@ export function TalentProfileModal({
   orgId,
   jdId,
   context = "dashboard",
+  stage,  
 }: {
   candidate: CandidateDetail | null;
   open: boolean;
@@ -270,6 +270,7 @@ export function TalentProfileModal({
   orgId: string;
   jdId: string;
   context?: "dashboard" | "pipeline";
+    stage?: string;
 }) {
   const [snackbar, setSnackbar] = useState<{
     open: boolean;
@@ -788,7 +789,8 @@ export function TalentProfileModal({
           )}
 
           {/* Schedule Interview — only in pipeline */}
-          {context === "pipeline" && (
+         {context === "pipeline" && stage !== "offer_sent" && (
+
             <Button
               variant="outlined"
               startIcon={<CalendarMonthOutlinedIcon />}
@@ -844,26 +846,26 @@ export function TalentProfileModal({
           {snackbar.message}
         </Alert>
       </Snackbar>
-      <ScheduleInterviewModal  // ← CHANGE
-  open={scheduleOpen}
-  onClose={() => setScheduleOpen(false)}
-  candidate={{
-    id: candidate.id,
-    name: candidate.name,
-    role: candidate.role,
-    experience: candidate.experience,
-    location: candidate.location,
-    email: candidate.email,
-    phone: candidate.phone,
-  }}
-  orgId={orgId}
-  jdId={jdId}
-  // Optionally pass your real interviewer list:
-  // availableInterviewers={[
-  //   { id: "sr", name: "Shreya R.", initials: "SR", color: "#6366F1" },
-  //   { id: "am", name: "Anil M.",   initials: "AM", color: "#0EA5E9" },
-  // ]}
-/>
+      <ScheduleInterviewModal // ← CHANGE
+        open={scheduleOpen}
+        onClose={() => setScheduleOpen(false)}
+        candidate={{
+          id: candidate.id,
+          name: candidate.name,
+          role: candidate.role,
+          experience: candidate.experience,
+          location: candidate.location,
+          email: candidate.email,
+          phone: candidate.phone,
+        }}
+        orgId={orgId}
+        jdId={jdId}
+        // Optionally pass your real interviewer list:
+        // availableInterviewers={[
+        //   { id: "sr", name: "Shreya R.", initials: "SR", color: "#6366F1" },
+        //   { id: "am", name: "Anil M.",   initials: "AM", color: "#0EA5E9" },
+        // ]}
+      />
     </Dialog>
   );
 }

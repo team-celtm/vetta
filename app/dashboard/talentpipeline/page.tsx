@@ -210,6 +210,7 @@ const CandidateCard: React.FC<{ candidate: Candidate }> = ({ candidate }) => {
           orgId={getOrgId()}
           jdId={candidate.jdId ?? ""} 
           context="pipeline"
+          stage={candidate.stage} 
         />
       </div>
     </>
