@@ -16,6 +16,7 @@ import Snackbar from "@mui/material/Snackbar";
 import Alert from "@mui/material/Alert";
 import { useState } from "react";
 import { ScheduleInterviewModal } from "./Scheduleinterviewmodal";
+import { SendOutreachModal } from "./Sendoutreachmodal";
 
 export interface SkillScore {
   name: string;
@@ -262,7 +263,7 @@ export function TalentProfileModal({
   orgId,
   jdId,
   context = "dashboard",
-  stage,  
+  stage,
 }: {
   candidate: CandidateDetail | null;
   open: boolean;
@@ -270,7 +271,7 @@ export function TalentProfileModal({
   orgId: string;
   jdId: string;
   context?: "dashboard" | "pipeline";
-    stage?: string;
+  stage?: string;
 }) {
   const [snackbar, setSnackbar] = useState<{
     open: boolean;
@@ -279,8 +280,10 @@ export function TalentProfileModal({
   }>({ open: false, message: "", severity: "success" });
 
   const [scheduling, setScheduling] = useState(false);
+  const [outreachOpen, setOutreachOpen] = useState(false);
+
   const [shortlisting, setShortlisting] = useState(false);
-  const [scheduleOpen, setScheduleOpen] = useState(false); // ← CHANGE
+  const [scheduleOpen, setScheduleOpen] = useState(false);
 
   if (!candidate) return null;
 
@@ -789,8 +792,7 @@ export function TalentProfileModal({
           )}
 
           {/* Schedule Interview — only in pipeline */}
-         {context === "pipeline" && stage !== "offer_sent" && (
-
+          {context === "pipeline" && stage !== "offer_sent" && (
             <Button
               variant="outlined"
               startIcon={<CalendarMonthOutlinedIcon />}
@@ -815,6 +817,7 @@ export function TalentProfileModal({
             <Button
               variant="contained"
               startIcon={<EmailOutlinedIcon />}
+              onClick={() => setOutreachOpen(true)}
               sx={{
                 flex: 1.5,
                 textTransform: "none",
@@ -866,6 +869,21 @@ export function TalentProfileModal({
         //   { id: "am", name: "Anil M.",   initials: "AM", color: "#0EA5E9" },
         // ]}
       />
+      {candidate && (
+        <SendOutreachModal
+          open={outreachOpen}
+          onClose={() => setOutreachOpen(false)}
+          candidate={{
+            id: candidate.id,
+            name: candidate.name,
+            role: candidate.role,
+            email: candidate.email,
+            phone: candidate.phone,
+          }}
+          orgId={orgId}
+          jdId={jdId}
+        />
+      )}
     </Dialog>
   );
 }
