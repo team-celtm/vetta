@@ -13,6 +13,7 @@ interface InvitePayload {
   time: string;
   duration: string;
   mode: string;
+  meetingLink: string;
   interviewers: string[];
   notes?: string;
   orgId: string;
@@ -156,29 +157,62 @@ function buildEmailHtml(payload: InvitePayload): string {
                     </table>
                   </td>
                 </tr>
-                <tr>
-                  <td style="padding:20px 24px;">
-                    <table width="100%" cellpadding="0" cellspacing="0">
-                      <tr>
-                        <td width="50%" style="padding-right:12px;">
-                          <p style="margin:0 0 3px;font-size:10px;font-weight:700;
-                                     color:#9CA3AF;letter-spacing:0.8px;text-transform:uppercase;">
-                            Duration
-                          </p>
-                          <p style="margin:0;font-size:14px;font-weight:600;color:#111827;">
-                            ${payload.duration}
-                          </p>
-                        </td>
-                        <td width="50%">
-                          <p style="margin:0 0 3px;font-size:10px;font-weight:700;
-                                     color:#9CA3AF;letter-spacing:0.8px;text-transform:uppercase;">
-                            Interviewer(s)
-                          </p>
-                          <p style="margin:0;font-size:14px;font-weight:600;color:#111827;">
-                            ${interviewerList}
-                          </p>
-                        </td>
-                      </tr>
+               <tr>
+  <td style="padding:20px 24px;border-bottom:1px solid #E0E7FF;">
+    <table width="100%" cellpadding="0" cellspacing="0">
+      <tr>
+        <td width="50%" style="padding-right:12px;">
+          <p style="margin:0 0 3px;font-size:10px;font-weight:700;
+                     color:#9CA3AF;letter-spacing:0.8px;text-transform:uppercase;">
+            Duration
+          </p>
+          <p style="margin:0;font-size:14px;font-weight:600;color:#111827;">
+            ${payload.duration}
+          </p>
+        </td>
+
+        <td width="50%">
+          <p style="margin:0 0 3px;font-size:10px;font-weight:700;
+                     color:#9CA3AF;letter-spacing:0.8px;text-transform:uppercase;">
+            Interviewer(s)
+          </p>
+          <p style="margin:0;font-size:14px;font-weight:600;color:#111827;">
+            ${interviewerList}
+          </p>
+        </td>
+      </tr>
+    </table>
+  </td>
+</tr>
+
+<!-- Meeting Link -->
+<tr>
+  <td style="padding:20px 24px;">
+    <p style="margin:0 0 6px;font-size:10px;font-weight:700;
+               color:#9CA3AF;letter-spacing:0.8px;text-transform:uppercase;">
+      Meeting Link
+    </p>
+
+    <a href="${payload.meetingLink}"
+       target="_blank"
+       style="
+         display:inline-block;
+         background:#2563EB;
+         color:#ffffff;
+         text-decoration:none;
+         padding:12px 18px;
+         border-radius:8px;
+         font-size:14px;
+         font-weight:600;
+       ">
+      Join Interview
+    </a>
+
+    <p style="margin:12px 0 0;font-size:12px;color:#6B7280;word-break:break-all;">
+      ${payload.meetingLink}
+    </p>
+  </td>
+</tr>
                     </table>
                   </td>
                 </tr>

@@ -208,9 +208,9 @@ const CandidateCard: React.FC<{ candidate: Candidate }> = ({ candidate }) => {
           open={modalOpen}
           onClose={() => setModalOpen(false)}
           orgId={getOrgId()}
-          jdId={candidate.jdId ?? ""} 
+          jdId={candidate.jdId ?? ""}
           context="pipeline"
-          stage={candidate.stage} 
+          stage={candidate.stage}
         />
       </div>
     </>
@@ -310,7 +310,6 @@ const TalentPipelinePage: React.FC = () => {
       );
       console.log("Pipeline response sample:", responses[0]?.results?.[0]);
 
-
       const all: Candidate[] = responses.flatMap((r) => r.results ?? []);
       setCandidates(all);
     } catch (err: unknown) {
@@ -322,6 +321,16 @@ const TalentPipelinePage: React.FC = () => {
 
   useEffect(() => {
     fetchAllStages();
+
+    const refreshPipeline = () => {
+      fetchAllStages();
+    };
+
+    window.addEventListener("pipeline-refresh", refreshPipeline);
+
+    return () => {
+      window.removeEventListener("pipeline-refresh", refreshPipeline);
+    };
   }, [fetchAllStages]);
 
   return (
