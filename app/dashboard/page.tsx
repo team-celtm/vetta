@@ -26,6 +26,14 @@ interface JDStatus {
   inferred_skills: InferredSkill[];
   inferred_seniority: string | null;
   inferred_domain: string | null;
+  inferred_personality?: {
+    leadership: number;
+    team_player: number;
+    communication: number;
+    data_driven: number;
+    bias_to_action: number;
+    extroversion: number;
+  } | null;
   created_at?: string;
 }
 
@@ -91,14 +99,8 @@ async function fetchAllJDs(orgId: string): Promise<JDStatus[]> {
   return data.job_descriptions ?? [];
 }
 
-const PERSONALITY_TRAITS = [
-  { name: "Leadership", score: 92, icon: "🏆" },
-  { name: "Team Player", score: 85, icon: "🤝" },
-  { name: "Communicator", score: 88, icon: "💬" },
-  { name: "Bias to Action", score: 80, icon: "⚡" },
-  { name: "Problem Solver", score: 95, icon: "🧩" },
-  { name: "Data Driven", score: 90, icon: "📊" },
-];
+// Add this just inside LeftPanelContent(), before the return:
+
 
 // ─── Add New JD Modal ─────────────────────────────────────────────────────────
 
@@ -390,6 +392,18 @@ function LeftPanelContent({
   candidateCount: number;
   onRefreshMatches: () => void;
 }) {
+
+  const personalityTraits = jd?.inferred_personality
+    ? [
+        { name: "Leadership",     score: jd.inferred_personality.leadership,     icon: "🏆" },
+        { name: "Team Player",    score: jd.inferred_personality.team_player,    icon: "🤝" },
+        { name: "Communicator",   score: jd.inferred_personality.communication,  icon: "💬" },
+        { name: "Bias to Action", score: jd.inferred_personality.bias_to_action, icon: "⚡" },
+        { name: "Problem Solver", score: jd.inferred_personality.extroversion,   icon: "🧩" },
+        { name: "Data Driven",    score: jd.inferred_personality.data_driven,    icon: "📊" },
+      ]
+    : [];
+    
   const inferredSkills = jd?.inferred_skills ?? [];
   const hasInferredSkills = inferredSkills.length > 0;
   const isActive = jd?.status === "active";
@@ -553,7 +567,7 @@ function LeftPanelContent({
       )}
 
       {/* ── Personality ── */}
-      {isActive && (
+      {isActive && personalityTraits.length > 0 && (
         <div className="px-4 pb-4">
           <div className="flex items-center gap-1.5 mb-3">
             <span className="text-[13px]">🎯</span>
@@ -562,7 +576,7 @@ function LeftPanelContent({
             </span>
           </div>
           <div className="flex flex-col gap-2.5">
-            {PERSONALITY_TRAITS.map((trait) => (
+            {personalityTraits.map((trait) => (
               <div key={trait.name} className="flex items-center gap-2">
                 <span className="text-[13px] w-5 text-center">
                   {trait.icon}
