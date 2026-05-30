@@ -153,7 +153,7 @@ const CandidateCard: React.FC<{ candidate: Candidate }> = ({ candidate }) => {
 
   return (
     <>
-      <div className="bg-white rounded-xl p-3 sm:p-4 shadow-sm border border-gray-100 hover:shadow-md transition">
+      <div className="bg-white rounded-xl h-46 p-3 sm:p-4 shadow-sm border border-gray-100 hover:shadow-md transition">
         <div className="flex justify-between">
           <div className="flex gap-2">
             <div
@@ -169,7 +169,7 @@ const CandidateCard: React.FC<{ candidate: Candidate }> = ({ candidate }) => {
           <span className={`text-sm font-bold ${scoreClass(scoreColor)}`}>
             {matchScore}%
           </span>
-        </div>
+        </div>   
 
         {tags.length > 0 && (
           <div className="flex flex-wrap gap-1 mt-2">
