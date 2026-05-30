@@ -472,7 +472,7 @@ function LeftPanelContent({
           {/* ── Add new JD button ── */}
           <button
             onClick={onAddNewJD}
-            className="flex items-center gap-1 text-[11px] font-semibold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-2.5 py-1 rounded-lg transition-colors"
+            className="cursor-pointer flex items-center gap-1 text-[11px] font-semibold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-2.5 py-1 rounded-lg transition-colors"
           >
             <svg
               className="w-3 h-3"
@@ -504,7 +504,7 @@ function LeftPanelContent({
             <p className="text-[12px] text-gray-400">No JDs yet.</p>
             <button
               onClick={onAddNewJD}
-              className="mt-1.5 text-[12px] font-semibold text-blue-600 hover:underline"
+              className="cursor-pointer mt-1.5 text-[12px] font-semibold text-blue-600 hover:underline"
             >
               Upload your first JD →
             </button>
