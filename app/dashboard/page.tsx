@@ -13,8 +13,7 @@ import { TalentCard, TalentCardItem } from "../Components/TalentCardItem";
 import { UploadZone } from "../Components/UploadZone";
 import { JDStatus } from "../Types/dashboardPage.interface";
 import { getOrgId } from "@/utils/Helpers";
-
-
+import { SlidersHorizontal } from "lucide-react";
 
 // ─── API Helpers ──────────────────────────────────────────────────────────────
 
@@ -67,9 +66,6 @@ async function fetchAllJDs(orgId: string): Promise<JDStatus[]> {
   const data = await res.json();
   return data.job_descriptions ?? [];
 }
-
-
-
 
 // ─── Add New JD Modal ─────────────────────────────────────────────────────────
 
@@ -361,18 +357,41 @@ function LeftPanelContent({
   candidateCount: number;
   onRefreshMatches: () => void;
 }) {
-
   const personalityTraits = jd?.inferred_personality
     ? [
-        { name: "Leadership",     score: jd.inferred_personality.leadership,     icon: "🏆" },
-        { name: "Team Player",    score: jd.inferred_personality.team_player,    icon: "🤝" },
-        { name: "Communicator",   score: jd.inferred_personality.communication,  icon: "💬" },
-        { name: "Bias to Action", score: jd.inferred_personality.bias_to_action, icon: "⚡" },
-        { name: "Problem Solver", score: jd.inferred_personality.extroversion,   icon: "🧩" },
-        { name: "Data Driven",    score: jd.inferred_personality.data_driven,    icon: "📊" },
+        {
+          name: "Leadership",
+          score: jd.inferred_personality.leadership,
+          icon: "🏆",
+        },
+        {
+          name: "Team Player",
+          score: jd.inferred_personality.team_player,
+          icon: "🤝",
+        },
+        {
+          name: "Communicator",
+          score: jd.inferred_personality.communication,
+          icon: "💬",
+        },
+        {
+          name: "Bias to Action",
+          score: jd.inferred_personality.bias_to_action,
+          icon: "⚡",
+        },
+        {
+          name: "Problem Solver",
+          score: jd.inferred_personality.extroversion,
+          icon: "🧩",
+        },
+        {
+          name: "Data Driven",
+          score: jd.inferred_personality.data_driven,
+          icon: "📊",
+        },
       ]
     : [];
-    
+
   const inferredSkills = jd?.inferred_skills ?? [];
   const hasInferredSkills = inferredSkills.length > 0;
   const isActive = jd?.status === "active";
@@ -817,7 +836,7 @@ export default function DashboardPage() {
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Unknown error");
     } finally {
-      setMatchesLoading(false); 
+      setMatchesLoading(false);
     }
   }, []);
 
@@ -1119,7 +1138,8 @@ export default function DashboardPage() {
               onClick={() => setFiltersOpen(true)}
               className="cursor-pointer hidden sm:flex items-center gap-1.5 h-9 px-3.5 border border-gray-200 rounded-lg text-[12px] font-semibold text-gray-600 hover:border-blue-500 hover:text-blue-600 transition-colors"
             >
-              Filters
+              <SlidersHorizontal size={14} strokeWidth={2} />
+              <span>Filters</span>
             </button>
           </div>
         </div>
@@ -1228,48 +1248,20 @@ export default function DashboardPage() {
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
               <div className="flex items-center gap-2.5">
                 <div className="w-7 h-7 bg-[#1a1a2e] rounded-md flex items-center justify-center">
-                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-                    <rect
-                      x="2"
-                      y="2"
-                      width="5"
-                      height="5"
-                      rx="1"
-                      fill="white"
-                    />
-                    <rect
-                      x="9"
-                      y="2"
-                      width="5"
-                      height="5"
-                      rx="1"
-                      fill="white"
-                    />
-                    <rect
-                      x="2"
-                      y="9"
-                      width="5"
-                      height="5"
-                      rx="1"
-                      fill="white"
-                    />
-                    <rect
-                      x="9"
-                      y="9"
-                      width="5"
-                      height="5"
-                      rx="1"
-                      fill="white"
-                    />
-                  </svg>
+                  <SlidersHorizontal
+                    size={14}
+                    className="text-white"
+                    strokeWidth={2.25}
+                  />
                 </div>
+
                 <h2 className="text-[17px] font-semibold text-gray-900 tracking-tight">
                   Filter Candidates
                 </h2>
               </div>
               <button
                 onClick={() => setFiltersOpen(false)}
-                className="w-8 h-8 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-500 text-sm hover:bg-gray-200 transition"
+                className="cursor-pointer w-8 h-8 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-500 text-sm hover:bg-gray-200 transition"
               >
                 ✕
               </button>
@@ -1351,6 +1343,7 @@ export default function DashboardPage() {
                           {label}
                         </span>
                         <button
+                          type="button"
                           role="switch"
                           aria-checked={active}
                           onClick={() =>
@@ -1360,10 +1353,14 @@ export default function DashboardPage() {
                                 : [...prev, value],
                             )
                           }
-                          className={`relative w-[38px] h-[22px] rounded-full transition-colors duration-200 flex-shrink-0 ${active ? "bg-blue-600" : "bg-gray-200"}`}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 ${
+                            active ? "bg-blue-600" : "bg-gray-300"
+                          }`}
                         >
                           <span
-                            className={`absolute top-[3px] w-4 h-4 bg-white rounded-full shadow transition-transform duration-200 ${active ? "translate-x-[19px]" : "translate-x-[3px]"}`}
+                            className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform duration-200 ${
+                              active ? "translate-x-5" : "translate-x-0.5"
+                            }`}
                           />
                         </button>
                       </div>
