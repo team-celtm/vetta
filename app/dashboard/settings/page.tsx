@@ -1,82 +1,10 @@
 "use client";
 
+import { SettingsData } from "@/app/Types/settings.interface";
+import { INDUSTRIES, ROLE_COLORS } from "@/utils/constants";
+import { capitalize, getAvatarColor, getInitials } from "@/utils/Helpers";
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
-
-// ─── Types ────────────────────────────────────────────────────────────────────
-
-interface OrgData {
-  id: string;
-  name: string;
-  industry: string;
-  primary_city: string;
-  plan: string;
-  domain:string;
-}
-
-interface TeamMember {
-  id: string;
-  full_name: string;
-  email: string;
-  role: string;
-  avatar_url: string | null;
-}
-
-interface SettingsData {
-  org: OrgData;
-  team_members: TeamMember[];
-}
-
-// ─── Constants ────────────────────────────────────────────────────────────────
-
-const INDUSTRIES = [
-  "Fintech / BFSI",
-  "Healthcare",
-  "E-commerce",
-  "SaaS / Tech",
-  "Manufacturing",
-  "Education",
-  "Real Estate",
-  "Logistics",
-  "Media & Entertainment",
-  "Other",
-];
-
-const ROLE_COLORS: Record<string, string> = {
-  admin: "text-blue-600 border border-blue-200 bg-blue-50",
-  manager: "text-orange-500 border border-orange-200 bg-orange-50",
-  member: "text-green-600 border border-green-200 bg-green-50",
-  viewer: "text-gray-500 border border-gray-200 bg-gray-50",
-};
-
-const AVATAR_COLORS = [
-  "bg-teal-600",
-  "bg-orange-500",
-  "bg-blue-600",
-  "bg-purple-600",
-  "bg-rose-500",
-  "bg-emerald-600",
-];
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function getInitials(name: string): string {
-  return name
-    .split(" ")
-    .slice(0, 2)
-    .map((n) => n[0]?.toUpperCase() ?? "")
-    .join("");
-}
-
-function getAvatarColor(index: number): string {
-  return AVATAR_COLORS[index % AVATAR_COLORS.length];
-}
-
-function capitalize(str: string): string {
-  return str.charAt(0).toUpperCase() + str.slice(1);
-}
-
-// ─── Component ────────────────────────────────────────────────────────────────
 
 const SettingPage: React.FC = () => {
   // Remote state
@@ -87,7 +15,7 @@ const SettingPage: React.FC = () => {
   // Form state (derived from remote, editable)
   const [companyName, setCompanyName] = useState("");
   const [industry, setIndustry] = useState("");
-   const [domain, setDomain] = useState("");
+  const [domain, setDomain] = useState("");
   const [primaryCity, setPrimaryCity] = useState("");
 
   // Save state
@@ -119,9 +47,11 @@ const SettingPage: React.FC = () => {
         setCompanyName(json.org.name);
         setIndustry(json.org.industry);
         setPrimaryCity(json.org.primary_city);
-        setDomain(json.org.domain)
+        setDomain(json.org.domain);
       } catch (err: unknown) {
-        setFetchError(err instanceof Error ? err.message : "Failed to load settings.");
+        setFetchError(
+          err instanceof Error ? err.message : "Failed to load settings.",
+        );
       } finally {
         setLoadingPage(false);
       }
@@ -166,7 +96,7 @@ const SettingPage: React.FC = () => {
                 primary_city: body.org.primary_city,
               },
             }
-          : prev
+          : prev,
       );
 
       setSaveSuccess(true);
@@ -185,14 +115,28 @@ const SettingPage: React.FC = () => {
       industry !== data.org.industry ||
       primaryCity !== data.org.primary_city);
 
-  // ── Render: loading ───────────────────────────────────────────────────────
   if (loadingPage) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
         <div className="flex items-center gap-3 text-gray-500 text-sm">
-          <svg className="w-5 h-5 animate-spin text-blue-500" fill="none" viewBox="0 0 24 24">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+          <svg
+            className="w-5 h-5 animate-spin text-blue-500"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle
+              className="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="4"
+            />
+            <path
+              className="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8v8H4z"
+            />
           </svg>
           Loading settings…
         </div>
@@ -205,9 +149,14 @@ const SettingPage: React.FC = () => {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center px-6">
         <div className="bg-white rounded-xl border border-red-200 p-6 max-w-md w-full text-center shadow-sm">
-          <p className="text-red-500 font-semibold text-sm mb-1">Failed to load settings</p>
+          <p className="text-red-500 font-semibold text-sm mb-1">
+            Failed to load settings
+          </p>
           <p className="text-gray-500 text-xs">{fetchError}</p>
-          <button onClick={() => window.location.reload()} className="mt-4 text-sm text-blue-600 underline">
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-4 text-sm text-blue-600 underline"
+          >
             Retry
           </button>
         </div>
@@ -221,7 +170,9 @@ const SettingPage: React.FC = () => {
       {/* Top Bar */}
       <div className="flex items-center justify-end gap-3 px-8 pt-5 pb-4">
         {saveSuccess && (
-          <span className="text-sm text-green-600 font-medium">✓ Changes saved</span>
+          <span className="text-sm text-green-600 font-medium">
+            ✓ Changes saved
+          </span>
         )}
         {saveError && (
           <span className="text-sm text-red-500 font-medium">{saveError}</span>
@@ -230,9 +181,10 @@ const SettingPage: React.FC = () => {
           onClick={handleSave}
           disabled={saving || !isDirty}
           className={`text-white text-sm font-semibold px-5 py-2 rounded-lg transition-colors duration-150 shadow-sm
-            ${isDirty && !saving
-              ? "bg-blue-600 hover:bg-blue-700 cursor-pointer"
-              : "bg-blue-300 cursor-not-allowed"
+            ${
+              isDirty && !saving
+                ? "bg-blue-600 hover:bg-blue-700 cursor-pointer"
+                : "bg-blue-300 cursor-not-allowed"
             }`}
         >
           {saving ? "Saving…" : "Save Changes"}
@@ -240,7 +192,6 @@ const SettingPage: React.FC = () => {
       </div>
 
       <div className="px-8 pb-10 max-w-screen-xl mx-auto space-y-8">
-
         {/* ── Company Profile ────────────────────────────────────────────── */}
         <section>
           <div className="mb-4">
@@ -254,7 +205,9 @@ const SettingPage: React.FC = () => {
             {/* Company Name */}
             <div className="flex items-center justify-between px-6 py-5">
               <div>
-                <p className="text-sm font-semibold text-gray-800">Company Name</p>
+                <p className="text-sm font-semibold text-gray-800">
+                  Company Name
+                </p>
                 <p className="text-xs text-gray-400 mt-0.5">
                   Shown in outreach emails and candidate profiles
                 </p>
@@ -284,12 +237,24 @@ const SettingPage: React.FC = () => {
                 >
                   <option value="">Select industry</option>
                   {INDUSTRIES.map((ind) => (
-                    <option key={ind} value={ind}>{ind}</option>
+                    <option key={ind} value={ind}>
+                      {ind}
+                    </option>
                   ))}
                 </select>
                 <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
-                  <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  <svg
+                    className="w-4 h-4 text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 9l-7 7-7-7"
+                    />
                   </svg>
                 </div>
               </div>
@@ -298,7 +263,9 @@ const SettingPage: React.FC = () => {
             {/* Primary City */}
             <div className="flex items-center justify-between px-6 py-5">
               <div>
-                <p className="text-sm font-semibold text-gray-800">Primary City</p>
+                <p className="text-sm font-semibold text-gray-800">
+                  Primary City
+                </p>
               </div>
               <input
                 type="text"
@@ -309,7 +276,7 @@ const SettingPage: React.FC = () => {
               />
             </div>
 
-              <div className="flex items-center justify-between px-6 py-5">
+            <div className="flex items-center justify-between px-6 py-5">
               <div>
                 <p className="text-sm font-semibold text-gray-800">Domain</p>
               </div>
@@ -321,7 +288,6 @@ const SettingPage: React.FC = () => {
                 placeholder="e.g. Bangalore, India"
               />
             </div>
-
           </div>
         </section>
 
@@ -337,7 +303,10 @@ const SettingPage: React.FC = () => {
           <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
             <div className="divide-y divide-gray-100">
               {data?.team_members.map((member, idx) => (
-                <div key={member.id} className="flex items-center justify-between px-6 py-4">
+                <div
+                  key={member.id}
+                  className="flex items-center justify-between px-6 py-4"
+                >
                   <div className="flex items-center gap-4">
                     {member.avatar_url ? (
                       <Image
@@ -355,7 +324,9 @@ const SettingPage: React.FC = () => {
                       </div>
                     )}
                     <div>
-                      <p className="text-sm font-semibold text-gray-800">{member.full_name}</p>
+                      <p className="text-sm font-semibold text-gray-800">
+                        {member.full_name}
+                      </p>
                       <p className="text-xs text-gray-400">{member.email}</p>
                     </div>
                   </div>
@@ -370,18 +341,10 @@ const SettingPage: React.FC = () => {
               ))}
 
               {data?.team_members.length === 0 && (
-                <p className="px-6 py-5 text-sm text-gray-400">No team members found.</p>
+                <p className="px-6 py-5 text-sm text-gray-400">
+                  No team members found.
+                </p>
               )}
-            </div>
-
-            {/* Invite */}
-            <div className="px-6 py-5 border-t border-gray-100">
-              <button className="flex items-center gap-2 text-sm text-gray-600 font-medium border border-gray-200 rounded-lg px-4 py-2 hover:bg-gray-50 transition-colors duration-150">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                </svg>
-                Invite Team Member
-              </button>
             </div>
           </div>
         </section>

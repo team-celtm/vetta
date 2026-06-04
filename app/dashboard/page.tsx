@@ -11,41 +11,10 @@ import {
 } from "@mui/material";
 import { TalentCard, TalentCardItem } from "../Components/TalentCardItem";
 import { UploadZone } from "../Components/UploadZone";
+import { JDStatus } from "../Types/dashboardPage.interface";
+import { getOrgId } from "@/utils/Helpers";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
 
-interface InferredSkill {
-  name: string;
-  weight: number;
-}
-
-interface JDStatus {
-  id: string;
-  status: "draft" | "inferring" | "active" | "paused" | "closed";
-  title: string;
-  inferred_skills: InferredSkill[];
-  inferred_seniority: string | null;
-  inferred_domain: string | null;
-  inferred_personality?: {
-    leadership: number;
-    team_player: number;
-    communication: number;
-    data_driven: number;
-    bias_to_action: number;
-    extroversion: number;
-  } | null;
-  created_at?: string;
-}
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function getOrgId(): string {
-  if (typeof document === "undefined") return "";
-  const match = document.cookie
-    .split("; ")
-    .find((row) => row.startsWith("vetta_org_id="));
-  return match ? match.split("=")[1] : "";
-}
 
 // ─── API Helpers ──────────────────────────────────────────────────────────────
 
@@ -99,7 +68,7 @@ async function fetchAllJDs(orgId: string): Promise<JDStatus[]> {
   return data.job_descriptions ?? [];
 }
 
-// Add this just inside LeftPanelContent(), before the return:
+
 
 
 // ─── Add New JD Modal ─────────────────────────────────────────────────────────
@@ -848,7 +817,7 @@ export default function DashboardPage() {
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Unknown error");
     } finally {
-      setMatchesLoading(false); // ← ADD
+      setMatchesLoading(false); 
     }
   }, []);
 

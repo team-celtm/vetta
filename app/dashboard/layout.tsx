@@ -36,7 +36,6 @@ import { getInitials } from "@/utils/getInitialName";
 const SIDEBAR_WIDTH = 64;
 type User = {
   full_name: string;
- 
 };
 const NAV_ITEMS = [
   {
@@ -69,7 +68,7 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
   const pathname = usePathname();
   const [openLogoutDialog, setOpenLogoutDialog] = useState(false);
 
-const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
@@ -206,20 +205,31 @@ const [user, setUser] = useState<User | null>(null);
       </Tooltip>
 
       {/* User Avatar */}
-      <Tooltip title="Your profile" placement="right" arrow>
-        <Avatar
+      <Tooltip title="Your Profile" placement="right" arrow>
+        <IconButton
           sx={{
-            width: 34,
-            height: 34,
-            bgcolor: "#1A35E8",
-            fontSize: 13,
-            fontWeight: 700,
-            cursor: "pointer",
-            border: "2px solid rgba(26,53,232,0.4)",
+            p: 0,
+            borderRadius: "50%",
           }}
         >
-          <Avatar>{isLoaded && user ? getInitials(user.full_name) : ""}</Avatar>
-        </Avatar>
+          <Avatar
+            sx={{
+              width: 40,
+              height: 40,
+              bgcolor: "#1A35E8",
+              color: "#fff",
+              fontSize: "0.875rem",
+              fontWeight: 600,
+              border: "2px solid rgba(26,53,232,0.15)",
+              transition: "all 0.2s ease",
+              "&:hover": {
+                boxShadow: "0 4px 12px rgba(26,53,232,0.25)",
+              },
+            }}
+          >
+            {isLoaded && user ? getInitials(user.full_name) : ""}
+          </Avatar>
+        </IconButton>
       </Tooltip>
       <Dialog
         open={openLogoutDialog}
