@@ -18,7 +18,7 @@ async function getUserId(req: NextRequest): Promise<string | null> {
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: Promise<{ orgId: string }> }
+  { params }: { params: Promise<{ orgId: string }> },
 ) {
   try {
     const { orgId } = await params;
@@ -43,7 +43,7 @@ export async function GET(
        FROM matches m
        JOIN job_descriptions jd ON jd.id = m.jd_id
        WHERE jd.org_id = $1::uuid`,
-      [orgId, period, String(Number(period) * 2)]
+      [orgId, period, String(Number(period) * 2)],
     );
 
     const avgScore = matchAccuracy?.avg_score ?? 0;
@@ -51,7 +51,10 @@ export async function GET(
     const scoreDiff = avgScore - prevScore;
 
     // ── 2. KPI: Avg time-to-hire (screening → hired in pipeline_entries) ──
-    const [timeToHire] = await query<{ avg_days: number | null; industry_avg: number }>(
+    const [timeToHire] = await query<{
+      avg_days: number | null;
+      industry_avg: number;
+    }>(
       `SELECT
          ROUND(AVG(EXTRACT(EPOCH FROM (pe.updated_at - pe.created_at)) / 86400)) AS avg_days,
          30 AS industry_avg
@@ -59,27 +62,30 @@ export async function GET(
        WHERE pe.org_id = $1::uuid
          AND pe.stage = 'hired'
          AND pe.updated_at >= now() - ($2 || ' days')::interval`,
-      [orgId, period]
+      [orgId, period],
     );
 
     const avgDays = Math.round(timeToHire?.avg_days ?? 0);
     const industryAvg = timeToHire?.industry_avg ?? 30;
 
     // ── 3. KPI: Active roles ──
-    const [activeRoles] = await query<{ current: number; new_this_period: number }>(
+    const [activeRoles] = await query<{
+      current: number;
+      new_this_period: number;
+    }>(
       `SELECT
          COUNT(*) FILTER (WHERE status = 'active')                                    AS current,
          COUNT(*) FILTER (WHERE status = 'active'
                             AND created_at >= now() - ($2 || ' days')::interval)     AS new_this_period
        FROM job_descriptions
        WHERE org_id = $1::uuid`,
-      [orgId, period]
+      [orgId, period],
     );
 
     // ── 4. KPI: Total candidates in pool ──
     const [poolCount] = await query<{ total: number }>(
       `SELECT COUNT(*) AS total FROM candidates WHERE is_active = true`,
-      []
+      [],
     );
 
     // ── 5. Hires per month (last 6 months) ──
@@ -93,7 +99,7 @@ export async function GET(
          AND updated_at >= now() - interval '6 months'
        GROUP BY DATE_TRUNC('month', updated_at)
        ORDER BY DATE_TRUNC('month', updated_at) ASC`,
-      [orgId]
+      [orgId],
     );
 
     // ── 6. Pool distribution by seniority ──
@@ -113,15 +119,15 @@ export async function GET(
          WHERE is_active = true
        ) t
        GROUP BY vetta_score_tier`,
-      []
+      [],
     );
 
     const POOL_COLORS: Record<string, string> = {
-      Senior:     "#4F8EF7",
-      "Mid-level":"#34D399",
-      "Lead/Head":"#FBBF24",
-      Associate:  "#F87171",
-      Unknown:    "#9CA3AF",
+      Senior: "#4F8EF7",
+      "Mid-level": "#34D399",
+      "Lead/Head": "#FBBF24",
+      Associate: "#F87171",
+      Unknown: "#9CA3AF",
     };
 
     const poolDistribution = poolRaw.map((r) => ({
@@ -138,14 +144,14 @@ export async function GET(
        GROUP BY title
        ORDER BY count DESC
        LIMIT 5`,
-      [orgId]
+      [orgId],
     );
 
     const maxCount = Number(topRolesRaw[0]?.count ?? 1);
     const topSearchedRoles = topRolesRaw.map((r, i) => ({
-      rank:     i + 1,
-      title:    r.title,
-      count:    Number(r.count),
+      rank: i + 1,
+      title: r.title,
+      count: Number(r.count),
       maxCount,
     }));
 
@@ -160,58 +166,67 @@ export async function GET(
          AND m.computed_at >= now() - interval '6 months'
        GROUP BY DATE_TRUNC('month', m.computed_at)
        ORDER BY DATE_TRUNC('month', m.computed_at) ASC`,
-      [orgId]
+      [orgId],
     );
 
     // ── Assemble KPI cards ─────────────────────────────────────────────────
 
     const kpiCards = [
       {
-        id:        "match-accuracy",
-        value:     `${avgScore}%`,
-        label:     "Match accuracy",
-        badge:     scoreDiff >= 0
-                     ? `+${scoreDiff.toFixed(1)}% vs last period`
-                     : `${scoreDiff.toFixed(1)}% vs last period`,
+        id: "match-accuracy",
+        value: `${avgScore}%`,
+        label: "Match accuracy",
+        badge:
+          scoreDiff >= 0
+            ? `+${scoreDiff.toFixed(1)}% vs last period`
+            : `${scoreDiff.toFixed(1)}% vs last period`,
         badgeType: scoreDiff >= 0 ? "positive" : "negative",
-        icon:      "target",
+        icon: "target",
       },
       {
-        id:        "avg-time-to-hire",
-        value:     avgDays > 0 ? `${avgDays}d` : "—",
-        label:     "Avg time-to-hire",
-        badge:     avgDays > 0 && avgDays < industryAvg
-                     ? `${industryAvg - avgDays}d faster than industry`
-                     : avgDays > 0
-                     ? `${avgDays - industryAvg}d slower than industry`
-                     : "No hires yet",
-        badgeType: avgDays > 0 && avgDays < industryAvg ? "positive" : "neutral",
-        icon:      "calendar",
+        id: "avg-time-to-hire",
+        value: avgDays > 0 ? `${avgDays}d` : "—",
+        label: "Avg time-to-hire",
+        badge:
+          avgDays > 0 && avgDays < industryAvg
+            ? `${industryAvg - avgDays}d faster than industry`
+            : avgDays > 0
+              ? `${avgDays - industryAvg}d slower than industry`
+              : "No hires yet",
+        badgeType:
+          avgDays > 0 && avgDays < industryAvg ? "positive" : "neutral",
+        icon: "calendar",
       },
       {
-        id:        "active-roles",
-        value:     String(activeRoles?.current ?? 0),
-        label:     "Active roles",
-        badge:     `${activeRoles?.new_this_period ?? 0} new this period`,
+        id: "active-roles",
+        value: String(activeRoles?.current ?? 0),
+        label: "Active roles",
+        badge: `${activeRoles?.new_this_period ?? 0} new this period`,
         badgeType: "neutral",
-        icon:      "briefcase",
+        icon: "briefcase",
       },
       {
-        id:        "talent-pool",
-        value:     Number(poolCount?.total ?? 0).toLocaleString(),
-        label:     "Talent pool size",
-        badge:     "Active candidates",
+        id: "talent-pool",
+        value: Number(poolCount?.total ?? 0).toLocaleString(),
+        label: "Talent pool size",
+        badge: "Active candidates",
         badgeType: "positive",
-        icon:      "bolt",
+        icon: "bolt",
       },
     ];
 
     return NextResponse.json({
       kpiCards,
-      hiresPerMonth:     hiresRaw.map((r) => ({ month: r.month, hires: Number(r.hires) })),
+      hiresPerMonth: hiresRaw.map((r) => ({
+        month: r.month,
+        hires: Number(r.hires),
+      })),
       poolDistribution,
       topSearchedRoles,
-      matchQualityTrend: matchTrendRaw.map((r) => ({ month: r.month, score: Number(r.score) })),
+      matchQualityTrend: matchTrendRaw.map((r) => ({
+        month: r.month,
+        score: Number(r.score),
+      })),
     });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Unknown error";

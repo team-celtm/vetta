@@ -26,3 +26,9 @@ export const AVATAR_COLORS = [
   "bg-rose-500",
   "bg-emerald-600",
 ];
+
+export const PERIOD_OPTIONS = [
+  { label: "Last 30 days",  value: "30"  },
+  { label: "Last 90 days",  value: "90"  },
+  { label: "Last 1 year",   value: "365" },
+];

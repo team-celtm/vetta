@@ -138,7 +138,6 @@ const SettingPage: React.FC = () => {
               d="M4 12a8 8 0 018-8v8H4z"
             />
           </svg>
-          Loading settings…
         </div>
       </div>
     );
