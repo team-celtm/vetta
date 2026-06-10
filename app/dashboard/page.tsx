@@ -316,11 +316,11 @@ function JDListItem({
             {jd.status}
           </span>
           {date && <span className="text-[10px] text-gray-400">{date}</span>}
-          {jd.inferred_skills?.length > 0 && (
+          {/* {jd.inferred_skills?.length > 0 && (
             <span className="text-[10px] text-gray-400">
               {jd.inferred_skills.length} skills
             </span>
-          )}
+          )} */}
         </div>
       </div>
 
