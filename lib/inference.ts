@@ -97,7 +97,7 @@ async function computeAndUpsertMatches(jdId: string): Promise<void> {
          )
        )
      LIMIT 200`,
-    [skillNames]
+    [skillNames],
   );
 
   if (!candidates.length) {
@@ -112,15 +112,14 @@ async function computeAndUpsertMatches(jdId: string): Promise<void> {
   for (const candidate of candidates) {
     // Build a lowercase lookup map: skill name → level (0-100)
     const candidateSkillMap = new Map<string, number>(
-      (candidate.skills ?? []).map((s) => [s.name.toLowerCase(), s.level ?? 0])
+      (candidate.skills ?? []).map((s) => [s.name.toLowerCase(), s.level ?? 0]),
     );
 
     let skillScore = 0;
     let totalWeight = 0;
 
     for (const jdSkill of inferredSkills) {
-      const level =
-        candidateSkillMap.get(jdSkill.name.toLowerCase()) ?? 0;
+      const level = candidateSkillMap.get(jdSkill.name.toLowerCase()) ?? 0;
       skillScore += (level / 100) * jdSkill.weight;
       totalWeight += jdSkill.weight;
     }
@@ -134,19 +133,19 @@ async function computeAndUpsertMatches(jdId: string): Promise<void> {
       candidate.availability === "available-now"
         ? 100
         : candidate.availability === "open"
-        ? 80
-        : candidate.availability === "2-weeks"
-        ? 60
-        : 40;
+          ? 80
+          : candidate.availability === "2-weeks"
+            ? 60
+            : 40;
 
     // Weighted composite score (0-100)
     const finalScore = Math.min(
       100,
       Math.round(
-        normalizedSkillScore * 0.70 +
+        normalizedSkillScore * 0.7 +
           availabilityScore * 0.15 +
-          (candidate.vetta_score ?? 0) * 0.15
-      )
+          (candidate.vetta_score ?? 0) * 0.15,
+      ),
     );
 
     matchRows.push({
@@ -178,12 +177,12 @@ async function computeAndUpsertMatches(jdId: string): Promise<void> {
         row.score,
         JSON.stringify(row.breakdown),
         INFERENCE_VERSION,
-      ]
+      ],
     );
   }
 
   console.log(
-    `[matches] ✓ Upserted ${matchRows.length} matches for JD ${jdId}`
+    `[matches] ✓ Upserted ${matchRows.length} matches for JD ${jdId}`,
   );
 }
 
@@ -198,13 +197,13 @@ export async function queueInference(jdId: string): Promise<void> {
     // 1. Mark as inferring
     await query(
       `UPDATE job_descriptions SET status = 'inferring' WHERE id = $1`,
-      [jdId]
+      [jdId],
     );
 
     // 2. Fetch raw_text
     const rows = await query<{ raw_text: string }>(
       `SELECT raw_text FROM job_descriptions WHERE id = $1 LIMIT 1`,
-      [jdId]
+      [jdId],
     );
 
     if (!rows.length) throw new Error(`JD not found: ${jdId}`);
@@ -236,21 +235,22 @@ export async function queueInference(jdId: string): Promise<void> {
       throw new Error(`AI returned invalid JSON: ${rawJson.slice(0, 200)}`);
     }
 
-    if (!Array.isArray(result.skills) || typeof result.personality !== "object") {
+    if (
+      !Array.isArray(result.skills) ||
+      typeof result.personality !== "object"
+    ) {
       throw new Error("AI response missing required fields");
     }
 
     // 5. Persist inference results and mark active
+    // 5. Persist inference results (do NOT mark active yet)
+    // 5. Persist inference results (status NOT set yet)
     await query(
       `UPDATE job_descriptions
-       SET
-         inferred_skills      = $1,
-         inferred_personality = $2,
-         inferred_seniority   = $3,
-         inferred_domain      = $4,
-         inference_version    = $5,
-         status               = 'active'
-       WHERE id = $6`,
+   SET inferred_skills = $1, inferred_personality = $2,
+       inferred_seniority = $3, inferred_domain = $4,
+       inference_version = $5
+   WHERE id = $6`,
       [
         JSON.stringify(result.skills),
         JSON.stringify(result.personality),
@@ -258,21 +258,22 @@ export async function queueInference(jdId: string): Promise<void> {
         result.domain || null,
         INFERENCE_VERSION,
         jdId,
-      ]
+      ],
     );
 
-    console.log(
-      `[inference] ✓ JD ${jdId} — ${result.skills.length} skills, seniority=${result.seniority}`
-    );
-
-    // 6. ✅ Compute and upsert matches NOW that inference is complete
+    // 6. Compute matches FIRST
     await computeAndUpsertMatches(jdId);
 
+    // 7. ONLY NOW mark active
+    await query(`UPDATE job_descriptions SET status = 'active' WHERE id = $1`, [
+      jdId,
+    ]);
+
+    console.log(`[inference] ✓ JD ${jdId} marked active with matches ready`);
   } catch (err) {
-    await query(
-      `UPDATE job_descriptions SET status = 'draft' WHERE id = $1`,
-      [jdId]
-    ).catch(() => {});
+    await query(`UPDATE job_descriptions SET status = 'draft' WHERE id = $1`, [
+      jdId,
+    ]).catch(() => {});
 
     console.error(`[inference] ✗ JD ${jdId} failed:`, err);
     throw err;

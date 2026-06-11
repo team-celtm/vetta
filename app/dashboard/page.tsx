@@ -812,10 +812,11 @@ export default function DashboardPage() {
     );
   });
 
-  const loadMatches = useCallback(async (jdId: string) => {
+  const loadMatches = useCallback(async (jdId: string, retryCount = 0) => {
     const orgId = getOrgId();
     if (!orgId) return;
-    setMatchesLoading(true); // ← ADD
+    setMatchesLoading(true);
+    let willRetry = false;
     try {
       const res = await fetch(
         `/api/orgs/${orgId}/job-descriptions/${jdId}/matches`,
@@ -825,7 +826,15 @@ export default function DashboardPage() {
         throw new Error(err.details || "Failed to load matches.");
       }
       const data = await res.json();
-      setAllResults(data.results ?? []);
+      const results = data.results ?? [];
+
+      if (results.length === 0 && retryCount < 2) {
+        willRetry = true;
+        setTimeout(() => loadMatches(jdId, retryCount + 1), 1200);
+        return;
+      }
+
+      setAllResults(results);
       if (computeStartRef.current) {
         const elapsed = ((Date.now() - computeStartRef.current) / 1000).toFixed(
           1,
@@ -836,7 +845,7 @@ export default function DashboardPage() {
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Unknown error");
     } finally {
-      setMatchesLoading(false);
+      if (!willRetry) setMatchesLoading(false);
     }
   }, []);
 
@@ -1167,32 +1176,66 @@ export default function DashboardPage() {
               )}
             </div>
           )}
-          {!isInferring && !matchesLoading && !hasResults && !error && (
-            <div className="text-center mt-20 opacity-50">
-              <svg
-                className="w-12 h-12 mx-auto text-gray-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={1.5}
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                />
-              </svg>
-              <p className="mt-3 text-gray-600">
-                Select a Job Description to see matches.
-              </p>
-              <button
-                onClick={() => setAddJDOpen(true)}
-                className="mt-3 text-[13px] font-semibold text-blue-600 hover:underline"
-              >
-                + Add a new JD
-              </button>
-            </div>
-          )}
+          {!isInferring &&
+            !matchesLoading &&
+            !jdsLoading &&
+            !hasResults &&
+            !error &&
+            (jd ? (
+              // JD is selected/active but no matches returned
+              <div className="text-center mt-20 opacity-70">
+                <svg
+                  className="w-12 h-12 mx-auto text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1.5}
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
+                </svg>
+                <p className="mt-3 text-gray-600">
+                  No candidates found for &quot;{jd.title}&quot; yet.
+                </p>
+                {jd.status === "active" && (
+                  <button
+                    onClick={() => loadMatches(jd.id)}
+                    className="mt-3 text-[13px] font-semibold text-blue-600 hover:underline"
+                  >
+                    Retry loading matches
+                  </button>
+                )}
+              </div>
+            ) : (
+              // No JD selected at all
+              <div className="text-center mt-20 opacity-50">
+                <svg
+                  className="w-12 h-12 mx-auto text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1.5}
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
+                </svg>
+                <p className="mt-3 text-gray-600">
+                  Select a Job Description to see matches.
+                </p>
+                <button
+                  onClick={() => setAddJDOpen(true)}
+                  className="mt-3 text-[13px] font-semibold text-blue-600 hover:underline"
+                >
+                  + Add a new JD
+                </button>
+              </div>
+            ))}
           {error && !isInferring && !matchesLoading && (
             <div className="text-center mt-20 p-6 bg-red-50 border border-red-200 rounded-xl max-w-md mx-auto">
               <p className="text-red-600 font-semibold">{error}</p>
