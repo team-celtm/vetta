@@ -8,6 +8,7 @@ import Link from "next/link";
 
 const LoginPage = () => {
   const [keepSignedIn, setKeepSignedIn] = useState(true);
+  const [isLocked, setIsLocked] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -50,10 +51,18 @@ const LoginPage = () => {
         const data = await res.json();
 
         if (!res.ok) {
-          // Use the server's error message (e.g. "Invalid email or password.")
-          setSubmitError(
-            data.error ?? "Something went wrong. Please try again.",
-          );
+          if (res.status === 429) {
+            setIsLocked(true);
+            setSubmitError(
+              data.error ??
+                "Too many failed login attempts. Please try again later.",
+            );
+          } else {
+            setSubmitError(
+              data.error ?? "Something went wrong. Please try again.",
+            );
+          }
+
           return;
         }
 
@@ -132,6 +141,9 @@ const LoginPage = () => {
         {/* FORM */}
         <form
           onSubmit={(e) => {
+            setSubmitError("");
+            setIsLocked(false);
+            setIsLoading(true);
             e.preventDefault();
             form.handleSubmit();
           }}
@@ -150,7 +162,7 @@ const LoginPage = () => {
                   value={field.state.value}
                   onChange={(e) => field.handleChange(e.target.value)}
                   onBlur={field.handleBlur}
-                  disabled={isLoading}
+                  disabled={isLoading || isLocked}
                   className="w-full rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm focus:ring-2 focus:ring-[#1A35E8]/20 disabled:opacity-50"
                 />
               </div>
@@ -172,12 +184,13 @@ const LoginPage = () => {
                     value={field.state.value}
                     onChange={(e) => field.handleChange(e.target.value)}
                     onBlur={field.handleBlur}
-                    disabled={isLoading}
+                    disabled={isLoading || isLocked}
                     className="w-full rounded-lg border border-gray-200 bg-white px-4 py-3 pr-10 text-sm focus:ring-2 focus:ring-[#1A35E8]/20 disabled:opacity-50"
                   />
 
                   <button
                     type="button"
+                    disabled={isLocked}
                     onClick={() => setShowPassword((prev) => !prev)}
                     tabIndex={-1}
                     className="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-700 cursor-pointer"
@@ -189,18 +202,20 @@ const LoginPage = () => {
             )}
           </form.Field>
 
-
-
           {/* ERROR */}
           {submitError && <p className="text-sm text-red-500">{submitError}</p>}
 
           {/* SUBMIT */}
           <button
             type="submit"
-            disabled={isLoading}
+            disabled={isLoading || isLocked}
             className="mt-2 w-full rounded-xl bg-[#1A35E8] px-6 py-3 md:py-4 text-sm font-bold text-white hover:bg-[#1530cc] disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer transition-colors"
           >
-            {isLoading ? "Signing in…" : "Sign In →"}
+            {isLocked
+              ? "Account Temporarily Locked"
+              : isLoading
+                ? "Signing in..."
+                : "Sign In →"}
           </button>
         </form>
       </div>

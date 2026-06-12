@@ -4,8 +4,6 @@ import bcrypt from "bcryptjs";
 import { SignJWT } from "jose";
 import { query } from "@/lib/db";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
 interface UserRow {
   id: string;
   org_id: string;
@@ -14,6 +12,8 @@ interface UserRow {
   role: string;
   password_hash: string;
   is_active: boolean;
+  failed_login_attempts: number;
+  locked_until: Date | null;
 }
 
 interface OrgRow {
@@ -49,7 +49,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { email, password } = body as { email?: string; password?: string };
+    const { email, password } = body as {
+      email?: string;
+      password?: string;
+    };
 
     if (!email || !password) {
       return NextResponse.json(
@@ -59,6 +62,7 @@ export async function POST(req: NextRequest) {
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
     if (!emailRegex.test(email)) {
       return NextResponse.json(
         { error: "Invalid email address." },
@@ -73,16 +77,30 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // 2. Find user
     const users = await query<UserRow>(
-      `SELECT id, org_id, email, full_name, role, password_hash, is_active
-       FROM users
-       WHERE email = $1
-       LIMIT 1`,
+      `
+      SELECT
+        id,
+        org_id,
+        email,
+        full_name,
+        role,
+        password_hash,
+        is_active,
+        failed_login_attempts,
+        locked_until
+      FROM users
+      WHERE email = $1
+      LIMIT 1
+      `,
       [email.toLowerCase().trim()],
     );
 
-    // Use a generic error to avoid user enumeration
-    const INVALID = { error: "Invalid email or password." };
+    // Generic error to prevent user enumeration
+    const INVALID = {
+      error: "Invalid email or password.",
+    };
 
     if (users.length === 0) {
       return NextResponse.json(INVALID, { status: 401 });
@@ -90,42 +108,132 @@ export async function POST(req: NextRequest) {
 
     const user = users[0];
 
+    // 3. Check if account is locked
+    if (
+      user.locked_until &&
+      new Date(user.locked_until).getTime() > Date.now()
+    ) {
+      return NextResponse.json(
+        {
+          error: "Too many failed login attempts. Please try again later.",
+        },
+        { status: 429 },
+      );
+    }
+
+    if (
+      user.locked_until &&
+      new Date(user.locked_until).getTime() <= Date.now()
+    ) {
+      await query(
+        `
+        UPDATE users
+        SET
+          failed_login_attempts = 0,
+          locked_until = NULL
+        WHERE id = $1
+        `,
+        [user.id],
+      );
+    }
+
     if (!user.is_active) {
       return NextResponse.json(
-        { error: "Your account has been deactivated. Contact your admin." },
+        {
+          error: "Your account has been deactivated. Contact your admin.",
+        },
         { status: 403 },
       );
     }
 
-    // 3. Verify password
+    // 4. Verify password
     const passwordMatch = await bcrypt.compare(password, user.password_hash);
+
     if (!passwordMatch) {
+      const attempts = (user.failed_login_attempts || 0) + 1;
+
+      if (attempts >= 5) {
+        await query(
+          `
+          UPDATE users
+          SET
+            failed_login_attempts = 0,
+            locked_until = NOW() + INTERVAL '15 minutes'
+          WHERE id = $1
+          `,
+          [user.id],
+        );
+
+        return NextResponse.json(
+          {
+            error:
+              "Too many failed login attempts. Please try again in 15 minutes.",
+          },
+          { status: 429 },
+        );
+      }
+
+      await query(
+        `
+        UPDATE users
+        SET failed_login_attempts = $1
+        WHERE id = $2
+        `,
+        [attempts, user.id],
+      );
+
       return NextResponse.json(INVALID, { status: 401 });
     }
 
-    // 4. Fetch the org to check it's still active
+    // 5. Reset failed attempts after successful login
+    await query(
+      `
+      UPDATE users
+      SET
+        failed_login_attempts = 0,
+        locked_until = NULL
+      WHERE id = $1
+      `,
+      [user.id],
+    );
+
+    // 6. Fetch organization
     const orgs = await query<OrgRow>(
-      `SELECT id, name, plan, is_active
-       FROM orgs
-       WHERE id = $1
-       LIMIT 1`,
+      `
+      SELECT
+        id,
+        name,
+        plan,
+        is_active
+      FROM orgs
+      WHERE id = $1
+      LIMIT 1
+      `,
       [user.org_id],
     );
 
     if (orgs.length === 0 || !orgs[0].is_active) {
       return NextResponse.json(
-        { error: "Your organisation account is inactive." },
+        {
+          error: "Your organisation account is inactive.",
+        },
         { status: 403 },
       );
     }
 
     const org = orgs[0];
 
-    query(`UPDATE users SET last_login = now() WHERE id = $1`, [user.id]).catch(
-      (err) => console.error("Failed to update last_login:", err),
-    );
+    // Update last login asynchronously
+    query(
+      `
+      UPDATE users
+      SET last_login = NOW()
+      WHERE id = $1
+      `,
+      [user.id],
+    ).catch((err) => console.error("Failed to update last_login:", err));
 
-    // 6. Sign JWT
+    // 7. Generate JWT
     const token = await signToken({
       sub: user.id,
       email: user.email,
@@ -135,7 +243,6 @@ export async function POST(req: NextRequest) {
       org_name: org.name,
       plan: org.plan,
     });
-
 
     const response = NextResponse.json(
       {
@@ -155,14 +262,14 @@ export async function POST(req: NextRequest) {
       { status: 200 },
     );
 
-
     response.cookies.set("vetta_token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       path: "/",
-      maxAge: 60 * 60 * 8, 
+      maxAge: 60 * 60 * 8, // 8 hours
     });
+
     response.cookies.set("vetta_org_id", org.id, {
       httpOnly: false,
       secure: process.env.NODE_ENV === "production",
@@ -174,8 +281,11 @@ export async function POST(req: NextRequest) {
     return response;
   } catch (err) {
     console.error("[POST /api/login] Unhandled error:", err);
+
     return NextResponse.json(
-      { error: "Internal server error. Please try again." },
+      {
+        error: "Internal server error. Please try again.",
+      },
       { status: 500 },
     );
   }
