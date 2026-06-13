@@ -9,4 +9,27 @@
 
 body {
   font-family: 'Plus Jakarta Sans', sans-serif;
+}@media print {
+  html, body {
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  /* MUI's permanent drawer paper */
+  .MuiDrawer-root {
+    display: none !important;
+  }
+
+  /* Catch-all: any element with inline overflow:hidden/auto and 100vh from MUI sx */
+  body * {
+    overflow: visible !important;
+  }
+}
+
+@media print {
+  #__next > div,  /* the outermost Box rendered by MUI */
+  .MuiBox-root {
+    height: auto !important;
+    min-height: auto !important;
+  }
 }

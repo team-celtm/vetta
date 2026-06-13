@@ -276,6 +276,10 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         height: "100vh",
         overflow: "hidden",
         bgcolor: "#F5F2EC",
+        "@media print": {
+          height: "auto",
+          overflow: "visible",
+        },
       }}
     >
       {/* ── Desktop permanent sidebar ── */}
@@ -285,11 +289,13 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           sx={{
             width: SIDEBAR_WIDTH,
             flexShrink: 0,
+            "@media print": { display: "none" },
             "& .MuiDrawer-paper": {
               width: SIDEBAR_WIDTH,
               boxSizing: "border-box",
               border: "none",
               p: 0,
+              "@media print": { display: "none" },
             },
           }}
         >
@@ -326,6 +332,11 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           display: "flex",
           flexDirection: "column",
           minWidth: 0,
+          "@media print": {
+            overflow: "visible",
+            height: "auto",
+            display: "block", // flex columns can also clip in print in some browsers
+          },
         }}
       >
         {/* Mobile top bar with hamburger */}
@@ -340,6 +351,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
               bgcolor: "#0F1117",
               borderBottom: "1px solid rgba(255,255,255,0.08)",
               flexShrink: 0,
+                "@media print": { display: "none" },
             }}
           >
             <IconButton

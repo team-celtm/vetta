@@ -136,8 +136,8 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
     }
 
-    // Only admins and managers can update org settings
-    if (!["admin", "manager"].includes(auth.role)) {
+    // Only admins and member can update org settings
+    if (!["admin", "member"].includes(auth.role)) {
       return NextResponse.json(
         { error: "You do not have permission to update org settings." },
         { status: 403 }

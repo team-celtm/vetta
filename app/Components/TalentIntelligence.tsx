@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import React from "react";
 
 interface Candidate {
@@ -114,15 +115,15 @@ const TalentIntelligence: React.FC = () => {
 
           {/* CTAs */}
           <div className="flex flex-wrap gap-3 mb-9">
-            <a
-              href="#"
-              className="inline-flex items-center gap-3 bg-[#2C4EFF] hover:bg-[#1a3ae0] text-white text-[15px] font-semibold rounded-[10px] px-6 py-4 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
+            <Link
+              href="/login"
+              className="cursor-pointer inline-flex items-center gap-3 bg-[#2C4EFF] hover:bg-[#1a3ae0] text-white text-[15px] font-semibold rounded-[10px] px-4 py-3 xl:px-6 xl:py-4 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
             >
               Get Started Free
               <span className="w-8 h-8 bg-white/20 rounded-[6px] flex items-center justify-center text-lg">
                 →
               </span>
-            </a>
+            </Link>
 
             <a
               href="#"

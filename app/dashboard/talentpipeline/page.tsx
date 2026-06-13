@@ -12,7 +12,13 @@ import {
   CandidateDetail,
   TalentProfileModal,
 } from "@/app/Components/Talentprofilemodal";
-import { IconCalendar, IconCheck, IconPencil, IconPerson, IconPin } from "@/utils/Svgs/IconHelpers";
+import {
+  IconCalendar,
+  IconCheck,
+  IconPencil,
+  IconPerson,
+  IconPin,
+} from "@/utils/Svgs/IconHelpers";
 import { getOrgId } from "@/utils/Helpers";
 
 const statIconMap: Record<string, React.FC> = {
@@ -116,7 +122,7 @@ const CandidateCard: React.FC<{ candidate: Candidate }> = ({ candidate }) => {
           <span className={`text-sm font-bold ${scoreClass(scoreColor)}`}>
             {matchScore}%
           </span>
-        </div>   
+        </div>
 
         {tags.length > 0 && (
           <div className="flex flex-wrap gap-1 mt-2">
@@ -296,31 +302,39 @@ const TalentPipelinePage: React.FC = () => {
       </div>
 
       {/* Stats */}
-      <div className="flex flex-wrap gap-4 sm:gap-6 px-4 sm:px-8 py-4 bg-white border-b">
-        {stats.map((s) => {
-          const Icon = statIconMap[s.icon];
-          return (
-            <div key={s.label} className="flex items-center gap-2">
+      <div className="bg-white border-b px-4 py-4 sm:px-8">
+        <div className="grid grid-cols-2 gap-3 sm:flex sm:flex-wrap sm:gap-6">
+          {stats.map((s) => {
+            const Icon = statIconMap[s.icon];
+
+            return (
               <div
-                className={`w-8 h-8 flex items-center justify-center rounded ${s.color}`}
+                key={s.label}
+                className="flex items-center gap-3 rounded-lg border border-gray-100 bg-white p-3 sm:border-0 sm:p-0"
               >
-                <Icon />
+                <div
+                  className={`flex h-9 w-9 items-center justify-center rounded ${s.color}`}
+                >
+                  <Icon />
+                </div>
+
+                <div className="min-w-0">
+                  <p className="text-sm font-bold text-gray-900 sm:text-lg">
+                    {loading ? (
+                      <span className="inline-block h-4 w-8 animate-pulse rounded bg-gray-200" />
+                    ) : (
+                      s.value
+                    )}
+                  </p>
+
+                  <p className="text-[10px] text-gray-400 sm:text-xs">
+                    {s.label}
+                  </p>
+                </div>
               </div>
-              <div>
-                <p className="font-bold text-sm sm:text-lg">
-                  {loading ? (
-                    <span className="inline-block w-6 h-4 bg-gray-200 rounded animate-pulse" />
-                  ) : (
-                    s.value
-                  )}
-                </p>
-                <p className="text-[10px] sm:text-xs text-gray-400">
-                  {s.label}
-                </p>
-              </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
 
       {/* Error */}

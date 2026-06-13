@@ -29,7 +29,7 @@ const ReadySection: React.FC = () => {
         <a
           href="#"
           className="inline-block bg-white text-[#2C4EFF] font-semibold text-sm md:text-base
-          px-8 py-4 rounded-full transition-all duration-200
+          px-5 py-3 xl:px-8 xl:py-4 rounded-full transition-all duration-200
           hover:bg-[#F0F0EC] hover:-translate-y-px"
         >
           Start Free — No Credit Card Needed

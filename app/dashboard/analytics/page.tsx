@@ -391,6 +391,9 @@ const AnalyticsPage: React.FC = () => {
     setDropOpen(false);
     fetchAnalytics(val);
   };
+  const handlePrint = () => {
+  window.print();
+};
 
   const currentPeriodLabel =
     PERIOD_OPTIONS.find((o) => o.value === period)?.label ?? "Last 30 days";
@@ -410,22 +413,33 @@ const AnalyticsPage: React.FC = () => {
           )}
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
           {/* Period selector */}
-          <div className="relative">
+          <div className="relative w-full sm:w-auto">
             <button
               onClick={() => setDropOpen((v) => !v)}
-              className="flex items-center gap-1.5 text-sm text-gray-600 border border-gray-200 rounded-lg px-3 py-2 bg-white hover:bg-gray-50 transition-colors"
+              className="
+        flex w-full sm:w-auto items-center justify-between gap-2
+        rounded-lg border border-gray-200 bg-white
+        px-3 py-2 text-sm text-gray-700
+        hover:bg-gray-50 transition
+      "
             >
-              {currentPeriodLabel} <IconChevron />
+              {currentPeriodLabel}
+              <IconChevron />
             </button>
+
             {dropOpen && (
-              <div className="absolute mt-2 w-44 bg-white border border-gray-200 rounded-lg shadow-lg z-10 right-0">
+              <div className="absolute right-0 z-10 mt-2 w-full sm:w-44 rounded-lg border border-gray-200 bg-white shadow-lg">
                 {PERIOD_OPTIONS.map((opt) => (
                   <button
                     key={opt.value}
                     onClick={() => handlePeriodChange(opt.value)}
-                    className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 ${period === opt.value ? "bg-gray-100 font-medium" : "text-gray-700"}`}
+                    className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-50 ${
+                      period === opt.value
+                        ? "bg-gray-100 font-medium"
+                        : "text-gray-700"
+                    }`}
                   >
                     {opt.label}
                   </button>
@@ -434,19 +448,34 @@ const AnalyticsPage: React.FC = () => {
             )}
           </div>
 
-          {/* Refresh */}
-          <button
-            onClick={() => fetchAnalytics(period, true)}
-            disabled={refreshing}
-            className="flex items-center gap-1.5 text-sm text-gray-600 border border-gray-200 rounded-lg px-3 py-2 bg-white hover:bg-gray-50 transition-colors disabled:opacity-50"
-          >
-            <IconRefresh /> Refresh
-          </button>
+          {/* Actions */}
+          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center sm:gap-3">
+            <button
+              onClick={() => fetchAnalytics(period, true)}
+              disabled={refreshing}
+              className="
+        flex w-full sm:w-auto items-center justify-center gap-2
+        rounded-lg bg-blue-600 px-4 py-2 text-sm text-white
+        transition hover:bg-blue-700 disabled:opacity-60
+      "
+            >
+              <IconRefresh />
+              Refresh
+            </button>
 
-          {/* Export */}
-          <button className="flex items-center gap-1.5 text-sm text-white bg-gray-900 rounded-lg px-4 py-2 hover:bg-gray-800 transition-colors font-medium">
-            <IconDownload /> Export
-          </button>
+            <button
+              onClick={handlePrint}
+              className="
+    flex w-full sm:w-auto items-center justify-center gap-2
+    rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white
+    transition hover:bg-gray-800
+    print:hidden
+  "
+            >
+              <IconDownload />
+              Print
+            </button>
+          </div>
         </div>
       </div>
 
