@@ -2,19 +2,8 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
-import { jwtVerify } from "jose";
+import { getUserId } from "@/utils/Helpers";
 
-async function getUserId(req: NextRequest): Promise<string | null> {
-  const token = req.cookies.get("vetta_token")?.value;
-  if (!token) return null;
-  try {
-    const secret = new TextEncoder().encode(process.env.JWT_SECRET);
-    const { payload } = await jwtVerify(token, secret);
-    return payload.sub as string;
-  } catch {
-    return null;
-  }
-}
 
 // ─── Round → stage mapping ─────────────────────────────────────────────────
 // Round 0 = Screening (stage: screening)

@@ -2,20 +2,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
-import { jwtVerify } from "jose";
-
-async function getUserId(req: NextRequest): Promise<string | null> {
-  const token = req.cookies.get("vetta_token")?.value;
-  if (!token) return null;
-  try {
-    const secret = new TextEncoder().encode(process.env.JWT_SECRET);
-    const { payload } = await jwtVerify(token, secret);
-    return payload.sub as string;
-  } catch {
-    return null;
-  }
-}
-
+import { getUserId } from "@/utils/Helpers";
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ orgId: string }> },
@@ -32,7 +19,7 @@ export async function GET(
       title: string;
       status: string;
       inferred_skills: unknown;
-      inferred_personality: unknown; // ← ADD
+      inferred_personality: unknown;
       inferred_seniority: string | null;
       inferred_domain: string | null;
       created_at: string;

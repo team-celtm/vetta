@@ -2,7 +2,8 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
-import { jwtVerify } from "jose";
+
+import { getUserId } from "@/utils/Helpers";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -21,35 +22,14 @@ interface JDDetail {
   updated_at: string;
 }
 
-// ─── AUTH HELPER (same as upload route) ───────────────────────────────────────
-
-async function getUserIdFromRequest(req: NextRequest) {
-  const token = req.cookies.get("vetta_token")?.value;
-
-  if (!token) return null;
-
-  try {
-    const secret = new TextEncoder().encode(process.env.JWT_SECRET);
-    const { payload } = await jwtVerify(token, secret);
-
-    return payload.sub as string;
-  } catch {
-    return null;
-  }
-}
-
-// ─── GET /api/orgs/:orgId/job-descriptions/:jdId ─────────────────────────────
-
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ orgId: string; jdId: string }> },
 ) {
   try {
-    // ✅ FIX: params is a Promise in Next.js App Router
     const { orgId, jdId } = await params;
 
-    // ✅ SAME AUTH STYLE AS UPLOAD
-    const userId = await getUserIdFromRequest(req);
+    const userId = await getUserId(req);
 
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
@@ -108,8 +88,7 @@ export async function PATCH(
   try {
     const { orgId, jdId } = await params;
 
-    // ✅ SAME AUTH AS UPLOAD
-    const userId = await getUserIdFromRequest(req);
+    const userId = await getUserId(req);
 
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized." }, { status: 401 });

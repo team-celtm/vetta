@@ -2,19 +2,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
-import { jwtVerify } from "jose";
-
-async function getUserIdFromRequest(req: NextRequest): Promise<string | null> {
-  const token = req.cookies.get("vetta_token")?.value;
-  if (!token) return null;
-  try {
-    const secret = new TextEncoder().encode(process.env.JWT_SECRET);
-    const { payload } = await jwtVerify(token, secret);
-    return payload.sub as string;
-  } catch {
-    return null;
-  }
-}
+import { getUserId } from "@/utils/Helpers";
 
 export async function GET(
   req: NextRequest,
@@ -23,7 +11,7 @@ export async function GET(
   try {
     const { candidateId } = await params;
 
-    const userId = await getUserIdFromRequest(req);
+    const userId = await getUserId(req);
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
     }
@@ -44,13 +32,12 @@ export async function GET(
       work_history: unknown;
       certifications: unknown;
       personality_scores: unknown;
-      vetta_score: number;
     }>(
       `
       SELECT
         id, full_name, current_title, email, phone, linkedin_url,
         city, country, availability, years_exp, current_company,
-        skills, work_history, certifications, personality_scores, vetta_score
+        skills, work_history, certifications, personality_scores
       FROM candidates
       WHERE id = $1::uuid
         AND is_active = true
@@ -59,7 +46,10 @@ export async function GET(
     );
 
     if (!rows.length) {
-      return NextResponse.json({ error: "Candidate not found." }, { status: 404 });
+      return NextResponse.json(
+        { error: "Candidate not found." },
+        { status: 404 },
+      );
     }
 
     const c = rows[0];
@@ -83,19 +73,24 @@ export async function GET(
       : [];
 
     const certifications = Array.isArray(c.certifications)
-      ? (c.certifications as Array<{ name: string; issuer: string; year: number }>)
+      ? (c.certifications as Array<{
+          name: string;
+          issuer: string;
+          year: number;
+        }>)
       : [];
 
     return NextResponse.json({
       id: c.id,
       name: c.full_name,
       role: c.current_title ?? "Unknown Role",
-      match: c.vetta_score,
+
       location: c.city ?? "Remote",
       city: c.city ?? undefined,
       experience: `${c.years_exp ?? 0}+ yrs`,
       availability: c.availability,
-      available: c.availability === "available-now" || c.availability === "open",
+      available:
+        c.availability === "available-now" || c.availability === "open",
       skills: skillScores.slice(0, 3).map((s) => s.name),
       skillScores,
       email: c.email ?? undefined,
@@ -103,7 +98,9 @@ export async function GET(
       linkedin: c.linkedin_url ?? undefined,
       workHistory,
       certifications,
-      personalityScores: c.personality_scores as Record<string, number> | undefined,
+      personalityScores: c.personality_scores as
+        | Record<string, number>
+        | undefined,
     });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Unknown error";

@@ -201,12 +201,12 @@ function AddJDModal({
                 onClick={() =>
                   selectedFile && onFileUpload(selectedFile, title)
                 }
-                className="mt-4 w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white text-[13px] font-bold rounded-lg h-10 transition-colors"
+                className="cursor-pointer mt-4 w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white text-[13px] font-bold rounded-lg h-10 transition-colors"
               >
                 {isLoading ? (
                   <CircularProgress size={14} sx={{ color: "#fff" }} />
                 ) : (
-                  "🚀"
+                  ""
                 )}
                 {isLoading ? "Uploading…" : "Upload & Analyse"}
               </button>
@@ -317,11 +317,11 @@ function JDListItem({
             {jd.status}
           </span>
           {date && <span className="text-[10px] text-gray-400">{date}</span>}
-          {/* {jd.inferred_skills?.length > 0 && (
+          {jd.inferred_skills?.length > 0 && (
             <span className="text-[10px] text-gray-400">
               {jd.inferred_skills.length} skills
             </span>
-          )} */}
+          )}
         </div>
       </div>
 

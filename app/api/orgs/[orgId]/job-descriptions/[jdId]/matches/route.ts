@@ -1,19 +1,7 @@
 // app/api/orgs/[orgId]/job-descriptions/[jdId]/matches/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
-import { jwtVerify } from "jose";
-
-async function getUserIdFromRequest(req: NextRequest): Promise<string | null> {
-  const token = req.cookies.get("vetta_token")?.value;
-  if (!token) return null;
-  try {
-    const secret = new TextEncoder().encode(process.env.JWT_SECRET);
-    const { payload } = await jwtVerify(token, secret);
-    return payload.sub as string;
-  } catch {
-    return null;
-  }
-}
+import { getUserId } from "@/utils/Helpers";
 
 export async function GET(
   req: NextRequest,
@@ -22,7 +10,7 @@ export async function GET(
   try {
     const { orgId, jdId } = await params;
 
-    const userId = await getUserIdFromRequest(req);
+    const userId = await getUserId(req);
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
     }

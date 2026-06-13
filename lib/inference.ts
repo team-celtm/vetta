@@ -51,7 +51,7 @@ Return ONLY valid JSON matching this exact schema — no markdown, no preamble:
 }
 
 Rules:
-- Extract 4–12 skills ranked by importance.
+- Extract 4–10 skills ranked by importance.
 - weight 1.0 = must-have, 0.3 = nice-to-have.
 - Personality scores reflect job demand.
 - Pick ONE seniority.
@@ -85,9 +85,8 @@ async function computeAndUpsertMatches(jdId: string): Promise<void> {
     skills: { name: string; level: number }[];
     years_exp: number;
     availability: string;
-    vetta_score: number;
   }>(
-    `SELECT id, skills, years_exp, availability, vetta_score
+    `SELECT id, skills, years_exp, availability
      FROM candidates
      WHERE is_active = true
        AND EXISTS (
@@ -110,51 +109,39 @@ async function computeAndUpsertMatches(jdId: string): Promise<void> {
     [];
 
   for (const candidate of candidates) {
-    // Build a lowercase lookup map: skill name → level (0-100)
+    // Candidate skill lookup
     const candidateSkillMap = new Map<string, number>(
-      (candidate.skills ?? []).map((s) => [s.name.toLowerCase(), s.level ?? 0]),
+      (candidate.skills ?? []).map((s) => [
+        s.name.toLowerCase().trim(),
+        s.level ?? 0,
+      ]),
     );
 
-    let skillScore = 0;
-    let totalWeight = 0;
+    let matchingSkills = 0;
+    const matchedSkillNames: string[] = [];
 
     for (const jdSkill of inferredSkills) {
-      const level = candidateSkillMap.get(jdSkill.name.toLowerCase()) ?? 0;
-      skillScore += (level / 100) * jdSkill.weight;
-      totalWeight += jdSkill.weight;
+      const skillName = jdSkill.name.toLowerCase().trim();
+
+      if (candidateSkillMap.has(skillName)) {
+        matchingSkills++;
+        matchedSkillNames.push(jdSkill.name);
+      }
     }
 
-    // Normalise to 0-100
-    const normalizedSkillScore =
-      totalWeight > 0 ? (skillScore / totalWeight) * 100 : 0;
-
-    // Availability bonus (0-100)
-    const availabilityScore =
-      candidate.availability === "available-now"
-        ? 100
-        : candidate.availability === "open"
-          ? 80
-          : candidate.availability === "2-weeks"
-            ? 60
-            : 40;
-
-    // Weighted composite score (0-100)
-    const finalScore = Math.min(
-      100,
-      Math.round(
-        normalizedSkillScore * 0.7 +
-          availabilityScore * 0.15 +
-          (candidate.vetta_score ?? 0) * 0.15,
-      ),
-    );
+    // Score = (matching skills / total JD skills) × 100
+    const finalScore =
+      inferredSkills.length > 0
+        ? Math.round((matchingSkills / inferredSkills.length) * 100)
+        : 0;
 
     matchRows.push({
       candidateId: candidate.id,
       score: finalScore,
       breakdown: {
-        skills: Math.round(normalizedSkillScore),
-        availability: availabilityScore,
-        vetta: candidate.vetta_score ?? 0,
+        matchedSkills: matchingSkills,
+        totalJdSkills: inferredSkills.length,
+        matchedSkillNames,
       },
     });
   }

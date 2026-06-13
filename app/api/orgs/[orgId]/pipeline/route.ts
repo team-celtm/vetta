@@ -1,28 +1,16 @@
 // app/api/orgs/[orgId]/pipeline/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
-import { jwtVerify } from "jose";
-
-async function getUserIdFromRequest(req: NextRequest): Promise<string | null> {
-  const token = req.cookies.get("vetta_token")?.value;
-  if (!token) return null;
-  try {
-    const secret = new TextEncoder().encode(process.env.JWT_SECRET);
-    const { payload } = await jwtVerify(token, secret);
-    return payload.sub as string;
-  } catch {
-    return null;
-  }
-}
+import { getUserId } from "@/utils/Helpers";
 
 // Maps frontend stage names → DB stage values
 // Frontend uses "offer_sent", DB stores "offer"
 const STAGE_MAP: Record<string, string[]> = {
-  screening:  ["screening"],
-  interview:  ["interview"],
-  offer_sent: ["offer"],       // ← key fix: "offer_sent" on frontend = "offer" in DB
-  hired:      ["hired"],
-  rejected:   ["rejected"],
+  screening: ["screening"],
+  interview: ["interview"],
+  offer_sent: ["offer"],
+  hired: ["hired"],
+  rejected: ["rejected"],
 };
 
 export async function GET(
@@ -32,7 +20,7 @@ export async function GET(
   try {
     const { orgId } = await params;
 
-    const userId = await getUserIdFromRequest(req);
+    const userId = await getUserId(req);
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
     }
@@ -55,7 +43,6 @@ export async function GET(
       city: string | null;
       availability: string | null;
       years_exp: number;
-      vetta_score: number;
       match_score: number | null;
       skills: unknown;
       jd_id: string;
@@ -79,7 +66,6 @@ export async function GET(
         c.city,
         c.availability,
         c.years_exp,
-        c.vetta_score,
         c.skills,
         m.match_score,
         pe.jd_id,
@@ -137,14 +123,19 @@ export async function GET(
         .join("")
         .toUpperCase();
 
-      const score = row.match_score ?? row.vetta_score ?? 0;
+      const score = row.match_score ?? 0;
       const scoreColor =
         score >= 80 ? "green" : score >= 65 ? "orange" : "yellow";
 
       const avatarColors = [
-        "bg-purple-400", "bg-blue-500", "bg-green-500",
-        "bg-orange-400", "bg-pink-400", "bg-teal-500",
-        "bg-indigo-400", "bg-red-400",
+        "bg-purple-400",
+        "bg-blue-500",
+        "bg-green-500",
+        "bg-orange-400",
+        "bg-pink-400",
+        "bg-teal-500",
+        "bg-indigo-400",
+        "bg-red-400",
       ];
       const colorIndex = row.candidate_id.charCodeAt(0) % avatarColors.length;
 
@@ -153,29 +144,29 @@ export async function GET(
         row.stage === "offer" ? "offer_sent" : (row.stage as string);
 
       return {
-        id:            row.entry_id,
-        candidateId:   row.candidate_id,
+        id: row.entry_id,
+        candidateId: row.candidate_id,
         initials,
-        avatarColor:   avatarColors[colorIndex],
-        name:          row.full_name,
-        role:          row.current_title ?? "—",
-        matchScore:    Math.round(score),
+        avatarColor: avatarColors[colorIndex],
+        name: row.full_name,
+        role: row.current_title ?? "—",
+        matchScore: Math.round(score),
         scoreColor,
         tags,
-        location:      row.city ?? "Remote",
-        experience:    row.years_exp ? `${row.years_exp}+ yrs` : "",
-        stage:         frontendStageName,
-        meta:          row.jd_title ?? undefined,
+        location: row.city ?? "Remote",
+        experience: row.years_exp ? `${row.years_exp}+ yrs` : "",
+        stage: frontendStageName,
+        meta: row.jd_title ?? undefined,
         isShortlisted: row.is_shortlisted,
-        priority:      row.priority,
-        notes:         row.notes ?? undefined,
-        availability:  row.availability ?? undefined,
-        jdId:          row.jd_id,
+        priority: row.priority,
+        notes: row.notes ?? undefined,
+        availability: row.availability ?? undefined,
+        jdId: row.jd_id,
         // Interview round summary for card display
         roundsCleared: Number(row.rounds_cleared ?? 0),
-        totalRounds:   Number(row.total_rounds ?? 0),
-        currentRound:  Number(row.current_round ?? 1),
-        lastDecision:  row.last_decision ?? null,
+        totalRounds: Number(row.total_rounds ?? 0),
+        currentRound: Number(row.current_round ?? 1),
+        lastDecision: row.last_decision ?? null,
       };
     });
 
