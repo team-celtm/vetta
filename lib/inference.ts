@@ -79,10 +79,10 @@ async function computeAndUpsertMatches(jdId: string): Promise<void> {
 
   const skillNames = inferredSkills.map((s) => s.name);
 
-  // 2. Find candidates with at least one overlapping skill (case-insensitive)
+  // 2. Find candidates with at least one overlapping skill (case-insensitive partial match)
   const candidates = await query<{
     id: string;
-    skills: { name: string; level: number }[];
+    skills: { name: string; level?: number; score?: number }[];
     years_exp: number;
     availability: string;
   }>(
@@ -91,9 +91,9 @@ async function computeAndUpsertMatches(jdId: string): Promise<void> {
      WHERE is_active = true
        AND EXISTS (
          SELECT 1 FROM jsonb_array_elements(skills) AS s
-         WHERE lower(s->>'name') = ANY(
-           SELECT lower(unnest($1::text[]))
-         )
+         JOIN unnest($1::text[]) AS jd_skill ON true
+         WHERE (s->>'name') ILIKE '%' || jd_skill || '%'
+            OR jd_skill ILIKE '%' || (s->>'name') || '%'
        )
      LIMIT 200`,
     [skillNames],
@@ -104,7 +104,7 @@ async function computeAndUpsertMatches(jdId: string): Promise<void> {
     return;
   }
 
-  // 3. Score each candidate in JS
+  // 3. Score each candidate in JS using weights and partial matching
   const matchRows: { candidateId: string; score: number; breakdown: object }[] =
     [];
 
@@ -113,35 +113,53 @@ async function computeAndUpsertMatches(jdId: string): Promise<void> {
     const candidateSkillMap = new Map<string, number>(
       (candidate.skills ?? []).map((s) => [
         s.name.toLowerCase().trim(),
-        s.level ?? 0,
+        s.level ?? s.score ?? 75,
       ]),
     );
 
-    let matchingSkills = 0;
+    let totalWeight = 0;
+    let earnedScore = 0;
     const matchedSkillNames: string[] = [];
 
     for (const jdSkill of inferredSkills) {
-      const skillName = jdSkill.name.toLowerCase().trim();
+      const jdWeight = jdSkill.weight || 1.0;
+      totalWeight += jdWeight;
 
+      const skillName = jdSkill.name.toLowerCase().trim();
+      let matchedScore: number | undefined;
+
+      // Exact match
       if (candidateSkillMap.has(skillName)) {
-        matchingSkills++;
+        matchedScore = candidateSkillMap.get(skillName);
+      } else {
+        // Partial match
+        for (const [candSkill, candScore] of candidateSkillMap.entries()) {
+          if (candSkill.includes(skillName) || skillName.includes(candSkill)) {
+            matchedScore = candScore;
+            break;
+          }
+        }
+      }
+
+      if (matchedScore !== undefined) {
+        earnedScore += jdWeight * (matchedScore / 100);
         matchedSkillNames.push(jdSkill.name);
       }
     }
 
-    // Score = (matching skills / total JD skills) × 100
+    // Score = (earned / totalWeight) * 100
     const finalScore =
-      inferredSkills.length > 0
-        ? Math.round((matchingSkills / inferredSkills.length) * 100)
-        : 0;
+      totalWeight > 0 ? Math.round((earnedScore / totalWeight) * 100) : 0;
 
     matchRows.push({
       candidateId: candidate.id,
       score: finalScore,
       breakdown: {
-        matchedSkills: matchingSkills,
+        matchedSkills: matchedSkillNames.length,
         totalJdSkills: inferredSkills.length,
         matchedSkillNames,
+        earnedScore,
+        totalWeight,
       },
     });
   }

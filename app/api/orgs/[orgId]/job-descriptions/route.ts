@@ -1,7 +1,7 @@
 // app/api/orgs/[orgId]/job-descriptions/route.ts
 
 import { NextRequest, NextResponse } from "next/server";
-import { query } from "@/lib/db";
+import { query, cachedQuery } from "@/lib/db";
 import { getUserId } from "@/utils/Helpers";
 export async function GET(
   req: NextRequest,
@@ -14,7 +14,7 @@ export async function GET(
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
     }
-    const rows = await query<{
+    const rows = await cachedQuery<{
       id: string;
       title: string;
       status: string;

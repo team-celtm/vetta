@@ -611,17 +611,17 @@ function LeftPanelContent({
           </div>
           <input
             type="range"
-            min={20}
+            min={0}
             max={90}
             value={matchThreshold}
             onChange={(e) => onThresholdChange(Number(e.target.value))}
             className="w-full h-1.5 rounded-full appearance-none cursor-pointer"
             style={{
-              background: `linear-gradient(to right, #2563EB ${((matchThreshold - 20) / 70) * 100}%, #E5E7EB ${((matchThreshold - 20) / 70) * 100}%)`,
+              background: `linear-gradient(to right, #2563EB ${(matchThreshold / 90) * 100}%, #E5E7EB ${(matchThreshold / 90) * 100}%)`,
             }}
           />
           <div className="flex justify-between mt-1">
-            <span className="text-[10px] text-gray-400">Broader 20%</span>
+            <span className="text-[10px] text-gray-400">Broader 0%</span>
             <span className="text-[10px] text-gray-400">Stricter 90%</span>
           </div>
           <button
@@ -658,7 +658,7 @@ export default function DashboardPage() {
   const [allResults, setAllResults] = useState<TalentCard[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [leftDrawerOpen, setLeftDrawerOpen] = useState(false);
-  const [matchThreshold, setMatchThreshold] = useState(30);
+  const [matchThreshold, setMatchThreshold] = useState(0);
   const [addJDOpen, setAddJDOpen] = useState(false);
 
   // All JDs fetched from backend

@@ -1,7 +1,7 @@
 // app/api/orgs/[orgId]/analytics/route.ts
 
 import { NextRequest, NextResponse } from "next/server";
-import { query } from "@/lib/db";
+import { query, cachedQuery } from "@/lib/db";
 import { getUserId } from "@/utils/Helpers";
 
 export async function GET(
@@ -20,7 +20,7 @@ export async function GET(
     const period = searchParams.get("period") ?? "30"; // days
 
     // ── 1. KPI: Match accuracy (avg match_score across all matches for org) ──
-    const [matchAccuracy] = await query<{
+    const [matchAccuracy] = await cachedQuery<{
       avg_score: number | null;
       prev_avg: number | null;
     }>(
@@ -39,7 +39,7 @@ export async function GET(
     const scoreDiff = avgScore - prevScore;
 
     // ── 2. KPI: Avg time-to-hire (screening → hired in pipeline_entries) ──
-    const [timeToHire] = await query<{
+    const [timeToHire] = await cachedQuery<{
       avg_days: number | null;
       industry_avg: number;
     }>(
@@ -57,7 +57,7 @@ export async function GET(
     const industryAvg = timeToHire?.industry_avg ?? 30;
 
     // ── 3. KPI: Active roles ──
-    const [activeRoles] = await query<{
+    const [activeRoles] = await cachedQuery<{
       current: number;
       new_this_period: number;
     }>(
@@ -71,13 +71,13 @@ export async function GET(
     );
 
     // ── 4. KPI: Total candidates in pool ──
-    const [poolCount] = await query<{ total: number }>(
+    const [poolCount] = await cachedQuery<{ total: number }>(
       `SELECT COUNT(*) AS total FROM candidates WHERE is_active = true`,
       [],
     );
 
     // ── 5. Hires per month (last 6 months) ──
-    const hiresRaw = await query<{ month: string; hires: number }>(
+    const hiresRaw = await cachedQuery<{ month: string; hires: number }>(
       `SELECT
          TO_CHAR(DATE_TRUNC('month', updated_at), 'Mon') AS month,
          COUNT(*) AS hires
@@ -91,7 +91,7 @@ export async function GET(
     );
 
     // ── 6. Pool distribution by seniority ──
-    const poolRaw = await query<{ seniority: string; count: number }>(
+    const poolRaw = await cachedQuery<{ seniority: string; count: number }>(
       `SELECT
          COALESCE(vetta_score_tier, 'Unknown') AS seniority,
          COUNT(*) AS count
@@ -125,7 +125,7 @@ export async function GET(
     }));
 
     // ── 7. Top searched roles (most JDs by title keyword) ──
-    const topRolesRaw = await query<{ title: string; count: number }>(
+    const topRolesRaw = await cachedQuery<{ title: string; count: number }>(
       `SELECT title, COUNT(*) AS count
        FROM job_descriptions
        WHERE org_id = $1::uuid
@@ -144,7 +144,7 @@ export async function GET(
     }));
 
     // ── 8. Match quality trend (avg score per month, last 6 months) ──
-    const matchTrendRaw = await query<{ month: string; score: number }>(
+    const matchTrendRaw = await cachedQuery<{ month: string; score: number }>(
       `SELECT
          TO_CHAR(DATE_TRUNC('month', m.computed_at), 'Mon') AS month,
          ROUND(AVG(m.match_score)) AS score
