@@ -31,7 +31,7 @@ export default function AdminLoginPage() {
       }
 
       // Successful login
-      router.push("/admin/create-candidate");
+      router.push("/admin/create-org");
     } catch {
       setError("Network error");
     } finally {
@@ -99,7 +99,7 @@ export default function AdminLoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-8 py-3.5 text-sm font-bold text-white shadow-lg shadow-blue-500/25 transition-all hover:scale-[1.02] hover:shadow-blue-500/40 disabled:cursor-not-allowed disabled:opacity-50"
+              className="cursor-pointer w-full rounded-xl bg-linear-to-r from-blue-600 to-indigo-600 px-8 py-3.5 text-sm font-bold text-white shadow-lg shadow-blue-500/25 transition-all hover:scale-[1.02] hover:shadow-blue-500/40 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {loading ? "Signing in..." : "Sign In"}
             </button>

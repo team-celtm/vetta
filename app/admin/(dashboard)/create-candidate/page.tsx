@@ -238,7 +238,7 @@ export default function CreateCandidatePage() {
           </div>
         )}
 
-        <button type="submit" disabled={loading} className="w-full rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-8 py-4 text-sm font-bold text-white shadow-lg shadow-blue-500/25 transition-all hover:scale-[1.02] hover:shadow-blue-500/40 disabled:cursor-not-allowed disabled:opacity-50">
+        <button type="submit" disabled={loading} className="cursor-pointer w-full rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-8 py-4 text-sm font-bold text-white shadow-lg shadow-blue-500/25 transition-all hover:scale-[1.02] hover:shadow-blue-500/40 disabled:cursor-not-allowed disabled:opacity-50">
           {loading ? "Creating..." : "Create Candidate"}
         </button>
       </form>
