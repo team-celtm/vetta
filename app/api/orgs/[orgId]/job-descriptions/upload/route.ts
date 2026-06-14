@@ -141,10 +141,6 @@ try {
 
     const jd = rows[0];
 
-    // Invalidate the job_descriptions cache so the new JD appears immediately
-    const { revalidateTag } = await import("next/cache");
-    revalidateTag("job_descriptions");
-
     // ─── Async inference queue ──────────────────────────────────────────────
 
     queueInference(jd.id).catch((err) =>
