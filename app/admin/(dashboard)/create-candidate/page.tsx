@@ -165,7 +165,7 @@ export default function CreateCandidatePage() {
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <label className="flex items-center gap-2 text-sm text-gray-300"><Code size={16} className="text-blue-400" /> Skills</label>
-                <button type="button" onClick={() => setSkills([...skills, { name: "", level: 50 }])} className="text-xs flex items-center gap-1 text-blue-400 hover:text-blue-300"><Plus size={14} /> Add Skill</button>
+                <button type="button" onClick={() => setSkills([...skills, { name: "", level: 50 }])} className="cursor-pointer text-xs flex items-center gap-1 text-blue-400 hover:text-blue-300"><Plus size={14} /> Add Skill</button>
               </div>
               {skills.map((skill, index) => (
                 <div key={index} className="flex gap-2 items-center bg-white/5 p-2 rounded-xl border border-white/10">
@@ -180,7 +180,7 @@ export default function CreateCandidatePage() {
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <label className="flex items-center gap-2 text-sm text-gray-300"><FileText size={16} className="text-emerald-400" /> Work History</label>
-                <button type="button" onClick={() => setWorkHistory([...workHistory, { title: "", company: "", from: "", to: "", current: false }])} className="text-xs flex items-center gap-1 text-emerald-400 hover:text-emerald-300"><Plus size={14} /> Add Job</button>
+                <button type="button" onClick={() => setWorkHistory([...workHistory, { title: "", company: "", from: "", to: "", current: false }])} className="cursor-pointer text-xs flex items-center gap-1 text-emerald-400 hover:text-emerald-300"><Plus size={14} /> Add Job</button>
               </div>
               {workHistory.map((job, index) => (
                 <div key={index} className="grid gap-2 bg-white/5 p-3 rounded-xl border border-white/10 relative">
@@ -205,7 +205,7 @@ export default function CreateCandidatePage() {
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <label className="flex items-center gap-2 text-sm text-gray-300"><Globe size={16} className="text-purple-400" /> Certifications</label>
-                <button type="button" onClick={() => setCertifications([...certifications, { name: "", issuer: "", year: new Date().getFullYear() }])} className="text-xs flex items-center gap-1 text-purple-400 hover:text-purple-300"><Plus size={14} /> Add Cert</button>
+                <button type="button" onClick={() => setCertifications([...certifications, { name: "", issuer: "", year: new Date().getFullYear() }])} className="cursor-pointer text-xs flex items-center gap-1 text-purple-400 hover:text-purple-300"><Plus size={14} /> Add Cert</button>
               </div>
               {certifications.map((cert, index) => (
                 <div key={index} className="flex gap-2 items-center bg-white/5 p-2 rounded-xl border border-white/10">
