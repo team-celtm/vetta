@@ -1,22 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  Eye,
-  EyeOff,
-  Mail,
-  Lock,
-  User,
-  Building2,
-  Shield,
-  CheckCircle,
-  AlertCircle,
-} from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, User, Building2, Shield, CheckCircle, AlertCircle } from "lucide-react";
 
 export default function CreateUserPage() {
   const [form, setForm] = useState({
-    adminEmail: "",
-    adminPassword: "",
     email: "",
     password: "",
     full_name: "",
@@ -25,14 +13,8 @@ export default function CreateUserPage() {
   });
 
   const [loading, setLoading] = useState(false);
-  const [showAdminPass, setShowAdminPass] = useState(false);
   const [showUserPass, setShowUserPass] = useState(false);
-
-  const [message, setMessage] = useState<{
-    type: "success" | "error";
-    text: string;
-  } | null>(null);
-
+  const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [orgs, setOrgs] = useState<{ id: string; name: string }[]>([]);
 
   useEffect(() => {
@@ -43,45 +25,31 @@ export default function CreateUserPage() {
   }, []);
 
   const handleChange = (key: string, value: string) => {
-    setForm((prev) => ({
-      ...prev,
-      [key]: value,
-    }));
+    setForm((prev) => ({ ...prev, [key]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     setLoading(true);
     setMessage(null);
 
     try {
       const res = await fetch("/api/admin/create-user", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
 
       const data = await res.json();
 
       if (!res.ok) {
-        setMessage({
-          type: "error",
-          text: data.error || "Something went wrong",
-        });
+        setMessage({ type: "error", text: data.error || "Something went wrong" });
         return;
       }
 
-      setMessage({
-        type: "success",
-        text: "User created successfully",
-      });
+      setMessage({ type: "success", text: "User created successfully" });
 
       setForm({
-        adminEmail: "",
-        adminPassword: "",
         email: "",
         password: "",
         full_name: "",
@@ -89,10 +57,7 @@ export default function CreateUserPage() {
         org_id: "",
       });
     } catch {
-      setMessage({
-        type: "error",
-        text: "Network error",
-      });
+      setMessage({ type: "error", text: "Network error" });
     } finally {
       setLoading(false);
     }
@@ -106,81 +71,18 @@ export default function CreateUserPage() {
   };
 
   return (
-    <div className="relative min-h-screen overflow-y-auto bg-black">
-      {/* Background */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,#2563eb25,transparent_30%),radial-gradient(circle_at_bottom_right,#7c3aed25,transparent_30%)]" />
+    <div className="rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl shadow-[0_0_50px_rgba(0,0,0,0.5)] max-w-2xl mx-auto">
+      <div className="border-b border-white/10 p-8">
+        <h1 className="text-4xl font-extrabold text-white" style={{ fontFamily: "var(--font-syne)" }}>
+          Create User
+        </h1>
+        <p className="mt-2 text-sm text-gray-400">Add a new member to your organization</p>
+      </div>
 
-      <div className="relative z-10 flex min-h-screen items-center justify-center px-4 py-10">
-        <div className="w-full max-w-2xl">
-          {/* Card */}
-          <div className="rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl shadow-[0_0_50px_rgba(0,0,0,0.5)]">
-            {/* Header */}
-            <div className="border-b border-white/10 p-8">
-              <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-blue-500/30 bg-blue-500/10 px-3 py-1 text-xs font-medium uppercase tracking-wider text-blue-400">
-                <span className="h-2 w-2 animate-pulse rounded-full bg-blue-400" />
-                Admin Panel
-              </div>
-
-              <h1
-                className="text-4xl font-extrabold text-white"
-                style={{ fontFamily: "var(--font-syne)" }}
-              >
-                Create User
-              </h1>
-
-              <p className="mt-2 text-sm text-gray-400">
-                Add a new member to your organization
-              </p>
-            </div>
-
-            <form onSubmit={handleSubmit} className="space-y-8 p-8">
-              {/* ADMIN */}
-              <section>
-                <h2 className="mb-4 text-xs font-semibold uppercase tracking-widest text-gray-500">
-                  Admin Credentials
-                </h2>
-
-                <div className="space-y-4">
-                  <Input
-                    icon={<Mail size={18} />}
-                    placeholder="Admin Email"
-                    type="email"
-                    value={form.adminEmail}
-                    onChange={(v) => handleChange("adminEmail", v)}
-                  />
-
-                  <Input
-                    icon={<Lock size={18} />}
-                    placeholder="Admin Password"
-                    type={showAdminPass ? "text" : "password"}
-                    value={form.adminPassword}
-                    onChange={(v) => handleChange("adminPassword", v)}
-                    right={
-                      <button
-                        type="button"
-                        onClick={() => setShowAdminPass(!showAdminPass)}
-                      >
-                        {showAdminPass ? (
-                          <EyeOff size={18} />
-                        ) : (
-                          <Eye size={18} />
-                        )}
-                      </button>
-                    }
-                  />
-                </div>
-              </section>
-
-              {/* Divider */}
-              <div className="h-px bg-white/10" />
-
-              {/* USER */}
-              <section>
-                <h2 className="mb-4 text-xs font-semibold uppercase tracking-widest text-gray-500">
-                  New User Details
-                </h2>
-
-                <div className="grid gap-4 md:grid-cols-2">
+      <form onSubmit={handleSubmit} className="space-y-8 p-8">
+        <section>
+          <h2 className="mb-4 text-xs font-semibold uppercase tracking-widest text-gray-500">New User Details</h2>
+          <div className="grid gap-4 md:grid-cols-2">
                   <Input
                     icon={<User size={18} />}
                     placeholder="Full Name"
@@ -315,10 +217,7 @@ export default function CreateUserPage() {
               >
                 {loading ? "Creating User..." : "Create User"}
               </button>
-            </form>
-          </div>
-        </div>
-      </div>
+      </form>
     </div>
   );
 }

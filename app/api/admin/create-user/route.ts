@@ -1,12 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { query } from '@/lib/db';
-
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+import { jwtVerify } from 'jose';
 
 export async function POST(req: NextRequest) {
   try {
+    // 1. Verify admin token from cookies
+    const token = req.cookies.get("vetta_admin_token")?.value;
+    if (!token) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    try {
+      const secret = new TextEncoder().encode(process.env.JWT_SECRET);
+      await jwtVerify(token, secret);
+    } catch {
+      return NextResponse.json({ error: "Invalid admin token" }, { status: 403 });
+    }
+
     const body = await req.json().catch(() => null);
 
     if (!body) {
@@ -14,8 +24,6 @@ export async function POST(req: NextRequest) {
     }
 
     const {
-      adminEmail,
-      adminPassword,
       email,
       password,
       full_name,
@@ -23,18 +31,7 @@ export async function POST(req: NextRequest) {
       org_id,
     } = body;
 
-    // ✅ 1. Verify admin credentials
-    if (
-      adminEmail !== ADMIN_EMAIL ||
-      adminPassword !== ADMIN_PASSWORD
-    ) {
-      return NextResponse.json(
-        { error: 'Unauthorized: Invalid admin credentials' },
-        { status: 403 }
-      );
-    }
-
-    // ✅ 2. Validate input
+    // 2. Validate input
     if (!email || !password || !full_name || !org_id) {
       return NextResponse.json(
         { error: 'All fields are required.' },
